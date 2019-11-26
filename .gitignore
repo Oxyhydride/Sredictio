@@ -4,4 +4,4 @@ Articles/
 .ipynb_checkpoints/
 
 # Files to be excluded
-*/.DS_Store
+**/.DS_Store
