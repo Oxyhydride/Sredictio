@@ -1,4 +1,4 @@
-![Sredictio]https://user-images.githubusercontent.com/25820201/69646002-0bfb8200-10a2-11ea-8fa5-bccee06b4cdc.jpg
+![Sredictio](https://user-images.githubusercontent.com/25820201/69646002-0bfb8200-10a2-11ea-8fa5-bccee06b4cdc.jpg)
 A stock trading bot using sentiment analysis and machine learning.
 
 ## What is this?
@@ -15,4 +15,4 @@ The stock data was obtained from [Yahoo Finance](https://finance.yahoo.com/)'s h
 
 The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (for what it can do, go [here](https://medium.com/analytics-vidhya/simplifying-social-media-sentiment-analysis-using-vader-in-python-f9e6ec6fc52f)) against the Straits Times' articles on a particular company.
 
-More on how the sentiments were obtained can be found in the `Get Sentiment` directory, in a file called `Sentiments.md`.
+More on how the sentiments were obtained can be found in the `Get Sentiment` directory, in a file called `README.md`.
