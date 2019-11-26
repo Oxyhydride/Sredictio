@@ -1,6 +1,6 @@
 """
-GetSentiment.py
-Version 2.0.6
+GetStockSentiment.py
+Version 2.0.7
 
 Created on 2019-04-29
 Updated on 2019-11-26
@@ -24,7 +24,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 STOCK_SYMBOL = "BTC"  # What is the symbol for the stock?
 STOCK_NAME = "Bitcoin"  # What's the company's name?
 
-OUTPUT_DIR = "./output/"  # Where should the sentiment csv go?
+OUTPUT_DIR = "./Output/"  # Where should the sentiment csv go?
 
 BATCH_SIZE = 20  # How many articles to be read every time?
 TIME_OFFSET = 8  # What's the timezone offset? E.g. for GMT+8, put 8
