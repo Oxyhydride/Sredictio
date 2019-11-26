@@ -1,14 +1,15 @@
 """
 GetStockSentiment.py
-Version 2.0.7
+Version 2.0.8
 
 Created on 2019-04-29
 Updated on 2019-11-26
 
 Copyright Ryan Kan
 
-Description: A helper program to scrap sentiments and generate the {NAME}_Sentiments.csv file for model training.
-             The sentiments are taken from the Straits Times' website.
+Description: A program to scrap sentiments from the Straits Times' 
+             website and generate the {NAME}_Sentiments.csv file 
+             for model training.
 """
 
 # IMPORTS
@@ -118,7 +119,7 @@ print(f"Post Collection Efficiency:        {totalPosts / truePostCount:.4f}")
 
 # Generate sentiment csv file
 sentimentDataframe = pd.DataFrame(sortedSentiments)
-sentimentDataframe.columns = ["Date", "Sentiment"]  # Set columns
+sentimentDataframe.columns = ["Date", "Sentiment"]  # Set the columns
 
 sentimentDataframe.to_csv(OUTPUT_DIR + STOCK_SYMBOL + "_sentiments.csv", index=False)  # Remove indexes in the csv file
 

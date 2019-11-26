@@ -33,4 +33,4 @@ After all the articles for that particular day was compiled, I simply took the a
 ## Sentiment Deployment
 After getting the date-sentiment pairs, I used `pandas` to export the list as a `.csv` file, which would be placed in the output folder.
 
-This `.csv` file would later be placed in the `STOCK_DATA` (or `STOCK_DATA_V2`) folder for model training.
+This `.csv` file would later be placed in the `StockData` folder for model training.
