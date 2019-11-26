@@ -1,5 +1,6 @@
 # Folders to be excluded
 Articles/
 .idea/
+.ipynb_checkpoints/
 
 # Files to be excluded
