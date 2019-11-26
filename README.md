@@ -4,6 +4,9 @@ A stock trading bot using sentiment analysis and machine learning.
 ## What is this?
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in buying/selling stocks.
 
+## What does Sredictio mean?
+Sredictio stands for **S**tock P**redictio**n. 
+
 ## How did this get made?
 Sredictio, at its core, is a A2C ([Advantage Actor Critic](https://sergioskar.github.io/Actor_critics/)) agent that has been trained against stock and sentiment data to come up with *actions* (buy, sell or hold) to maximise profit.
 
