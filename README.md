@@ -1,4 +1,4 @@
-# Sredictio
+![Sredictio]https://user-images.githubusercontent.com/25820201/69646002-0bfb8200-10a2-11ea-8fa5-bccee06b4cdc.jpg
 A stock trading bot using sentiment analysis and machine learning.
 
 ## What is this?
