@@ -1,4 +1,4 @@
-![Sredictio](https://user-images.githubusercontent.com/25820201/69646002-0bfb8200-10a2-11ea-8fa5-bccee06b4cdc.jpg)
+![Sredictio](https://user-images.githubusercontent.com/25820201/69715400-246fa900-1143-11ea-91e1-7f9107c652a0.jpg)
 A stock trading bot using sentiment analysis and machine learning.
 
 ## What is this?
