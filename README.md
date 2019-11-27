@@ -1,5 +1,5 @@
-![Sredictio](https://user-images.githubusercontent.com/25820201/69715400-246fa900-1143-11ea-91e1-7f9107c652a0.jpg)
-A stock trading bot using sentiment analysis and machine learning.
+![SredictioImage](https://user-images.githubusercontent.com/25820201/69715400-246fa900-1143-11ea-91e1-7f9107c652a0.jpg)
+A stock trading bot using sentiment analysis and reinforcement learning.
 
 ## What is this?
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in buying/selling stocks.
@@ -17,9 +17,12 @@ The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (f
 
 More on how the sentiments were obtained can be found in the `Get Sentiment` directory, in a file called `README.md`.
 
-# Credits
-Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
+## What's with the spreadsheet?
+`Sredictio Data Tracking.xlsx` is an excel spreadsheet used to document all the tests done on the data and on the A2C agent.
 
-Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
+There spreadsheet currently contains 3 previous tests on the data and on the model. For the tab on `Training Data on Performance`, read the `README.md` file under the `TDoP` subdirectory.
 
-Cover image taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
+## Credits
+- Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
+- Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
+- Cover image taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
