@@ -1,13 +1,8 @@
 # Folders to be excluded
 Articles/
-.idea/
-.ipynb_checkpoints/
-
 **/.idea/
 **/.ipynb_checkpoints/
 
 # Files to be excluded
 .DS_Store
 **/.DS_Store
-tensorboard/A2C/.DS_Store
-Get Sentiment/.DS_Store
