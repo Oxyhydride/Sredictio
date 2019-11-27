@@ -19,5 +19,7 @@ More on how the sentiments were obtained can be found in the `Get Sentiment` dir
 
 # Credits
 Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
+
 Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
+
 Cover image taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
