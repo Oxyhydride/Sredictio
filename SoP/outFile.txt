@@ -1,0 +1,16 @@
+----- 005930.KS -----
+A2C Score (TRAINING): 21.372
+A2C Score (TESTING: BTC): 26.493
+
+----- BA -----
+A2C Score (TRAINING): 43.618
+A2C Score (TESTING: BTC): 28.417
+
+----- S63.SI -----
+A2C Score (TRAINING): 35.223
+A2C Score (TESTING: BTC): 16.315
+
+----- TSLA -----
+A2C Score (TRAINING): 22.207
+A2C Score (TESTING: BTC): 21.984
+

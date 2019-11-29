@@ -36,8 +36,8 @@ MAX_TRADING_SESSION = 500  # How many entries, maximally, can the environment ta
 
 IS_JUPYTER = False  # Is this run in a Jupyter notebook?
 
-TRAINING_STOCKS = ["005930.KS", "AAPL", "AMZN", "BA", "FB", "GOOGL", "S63.SI", "TSLA", "U11.SI"]
-TESTING_STOCKS = ["BTC", "DIS", "Z74.SI"]
+TRAINING_STOCKS = ["005930.KS", "BA", "S63.SI", "TSLA"]
+TESTING_STOCKS = ["BTC"]
 
 # # Setup
 print("Setting up...")
@@ -86,11 +86,12 @@ def get_data(directory):
     # Convert stock data to np.array
     stock_arr = stock_data.values
 
-    # Load sentiment data
-    sentiment_data = read_csv(full_path + "sentiments.csv", header=0, squeeze=True)
+    # Fake sentiment data: Replace all sentiment data with zeros
+    sentiment_data = stock_data["Date"].to_frame(name="Date")
+    sentiment_data.insert(1, "Sentiment", [0] * len(stock_data), True)
 
     # Convert sentiment data to np.array
-    sentiment_arr = sentiment_data.values[::-1]
+    sentiment_arr = sentiment_data.values
     
     # Fill in missing values for sentiment data
     sentiment_arr_new = sentiment_arr.copy()
@@ -660,7 +661,6 @@ with open("outFile.txt", "w+") as outFile:
 
         a2cScore = a2cEnv.get_val()  # The model's score
 
-        # print("-----> A2C Score (TRAINING: {}): {:.3f}".format(trainingStock, a2cScore))
         outFile.write("----- {} -----\nA2C Score (TRAINING): {:.3f}\n".format(trainingStock, a2cScore))
 
 
