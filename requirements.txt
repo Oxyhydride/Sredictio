@@ -1,0 +1,14 @@
+# Fixed Version Packages
+ta==0.4.7
+stable-baselines==2.8.0
+
+# Variable Version Packages
+gym>=0.12.5
+numpy>=1.15.4
+pandas>=0.23.4
+matplotlib>=3.0.2
+
+# General Packages
+optuna
+seaborn
+tqdm
