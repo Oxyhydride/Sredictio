@@ -1,6 +1,6 @@
 """
 TradingEnv.py
-Version 1.17.4
+Version 1.17.5
 
 Created on 2019-06-03
 Updated on 2019-11-30
@@ -34,8 +34,7 @@ class TradingEnv(gym.Env):
     viewer = None
 
     def __init__(self, data_df: pd.DataFrame, init_invest: float = 25.0, reward_len: int = 32,
-                 look_back_window_size: int = 5, is_serial: bool = False, forecast_length: int = 5,
-                 max_trading_session: int = 100):
+                 look_back_window_size: int = 5, is_serial: bool = False, max_trading_session: int = 100):
         """
         Initialization function for the trading environment.
 
@@ -45,7 +44,6 @@ class TradingEnv(gym.Env):
         - reward_len, int: No of entries to consider when calculating reward (Default = 32)
         - look_back_window_size, int: How many entries can the agent look back? (Default = 5)
         - is_serial, bool: Is the environment serial (i.e. following a strict sequence)? (Default = False)
-        - forecast_length, int: How many entries to forecast? (Default = 5)
         - max_trading_session, int: How many entries, maximally, can the environment take as data? (Default = 100)
         """
         # Convert given data into variables
@@ -55,7 +53,6 @@ class TradingEnv(gym.Env):
         self.reward_len = reward_len  # Length of reward consideration array
         self.look_back_window = look_back_window_size  # Size of the look_back window
         self.is_serial = is_serial  # Is the environment serial?
-        self.forecast_len = forecast_length  # The forecast length
         self.max_trading_session = max_trading_session  # The maximum length for a trading session
 
         # Create the histories
@@ -203,6 +200,7 @@ class TradingEnv(gym.Env):
         Returns:
         - Observation list (List)
         """
+        
         return np.array([self.stock_owned_history[-self.look_back_window:],
                          self.open_history[self.cur_step - self.look_back_window: self.cur_step],
                          self.high_history[self.cur_step - self.look_back_window: self.cur_step],

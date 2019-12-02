@@ -1,8 +1,8 @@
 # Folders to be excluded
 **/.idea/
 **/.ipynb_checkpoints/
+./tensorboard/
 
 # Files to be excluded
-.DS_Store
 **/.DS_Store
 ~$Sredictio Data Tracking.xlsx

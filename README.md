@@ -4,7 +4,7 @@ A stock trading bot using sentiment analysis and reinforcement learning.
 ## What is this?
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in buying/selling stocks.
 
-## What does Sredictio mean?
+## What does Sredictio stand for?
 Sredictio stands for ***S***tock P***redictio***n. 
 
 ## How did this get made?
@@ -15,12 +15,10 @@ The stock data was obtained from [Yahoo Finance](https://finance.yahoo.com/)'s h
 
 The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (for what it can do, go [here](https://medium.com/analytics-vidhya/simplifying-social-media-sentiment-analysis-using-vader-in-python-f9e6ec6fc52f)) against the Straits Times' articles on a particular company.
 
-More on how the sentiments were obtained can be found in the `Get Sentiment` directory, in a file called `README.md`.
-
 ## What's with the spreadsheet?
 `Sredictio Data Tracking.xlsx` is an excel spreadsheet used to document all the tests done on the data and on the A2C agent.
 
-There spreadsheet currently contains 3 previous tests on the data and on the model. For the tab on `Training Data on Performance`, read the `README.md` file under the `TDoP` subdirectory.
+There spreadsheet currently contains 3 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
 
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).

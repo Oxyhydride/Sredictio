@@ -1,9 +1,9 @@
 """
 train.py
-Version 1.0.0
+Version 1.0.1
 
 Created on 2019-11-30
-Updated on 2019-11-30
+Updated on 2019-12-01
 
 Copyright Ryan Kan 2019
 
@@ -71,10 +71,12 @@ while not done:
 a2cScore = a2cEnv.get_val()  # The model's score
 
 # Output results
+print("-" * 50 + " TRAINING RESULTS " + "-" * 50)
 print("A2C Score: {:.3f}".format(a2cScore))
 print("A2C - BHODL = {:.3f}".format(a2cScore - train_baseline_scores[0]))
 print("A2C - RSI Divergence = {:.3f}".format(a2cScore - train_baseline_scores[1]))
 print("A2C - SMA Crossover = {:.3f}".format(a2cScore - train_baseline_scores[2]))
+print()
 
 # MODEL TESTING
 # Prepare testing data
@@ -99,7 +101,9 @@ while not done:
 a2cScore = a2cEnv.get_val()  # The model's score
 
 # Output results
+print("-" * 50 + " TESTING RESULTS " + "-" * 50)
 print("A2C Score: {:.3f}".format(a2cScore))
 print("A2C - BHODL = {:.3f}".format(a2cScore - test_baseline_scores[0]))
 print("A2C - RSI Divergence = {:.3f}".format(a2cScore - test_baseline_scores[1]))
 print("A2C - SMA Crossover = {:.3f}".format(a2cScore - test_baseline_scores[2]))
+print()
