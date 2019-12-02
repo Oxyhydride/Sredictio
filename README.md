@@ -18,7 +18,7 @@ The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (f
 ## What's with the spreadsheet?
 `Sredictio Data Tracking.xlsx` is an excel spreadsheet used to document all the tests done on the data and on the A2C agent.
 
-More on how the sentiments were obtained can be found in the `Extra Resources/Get Sentiment` directory, in a file called `README.md`.
+There spreadsheet currently contains 3 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
 
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
