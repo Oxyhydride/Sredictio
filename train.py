@@ -1,9 +1,9 @@
 """
 train.py
-Version 1.0.1
+Version 1.1.0
 
 Created on 2019-11-30
-Updated on 2019-12-01
+Updated on 2019-12-02
 
 Copyright Ryan Kan 2019
 
@@ -11,30 +11,42 @@ Description: A file which helps train the agent
 """
 
 # IMPORTS
+import argparse
+
 from stable_baselines import A2C
-from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
 from env.TradingEnv import TradingEnv
 from utils import baselineUtils, dataUtils, graphUtils
 
-# CONSTANTS
-STOCK_DIRECTORY = "./data/"  # Where should the system obtain the stock data from?
-TRAINING_STOCK = "FB"  # Which stock file should be used for training?
-TESTING_STOCK = "BTC"  # Which stock file should be used for testing?
+# ARGUMENTS
+parser = argparse.ArgumentParser()
+parser.add_argument("stock_dir", type=str, help="Which directory should the system obtain the stock data from?")
+parser.add_argument("training_stock", type=str, help="Which stock file should be used for training?")
+parser.add_argument("testing_stock", type=str, help="Which stock file should be used for testing?")
+parser.add_argument("no_iterations", type=int, help="Number of iterations to train the A2C agent")
 
-INIT_INVEST = 25.0
+parser.add_argument("-i", "--init_invest", type=float, help="Initial investment amount", default=25.0)
+parser.add_argument("-a", "--no_entries_taking_avg", type=int, help="Number of entries to consider when taking average",
+                    default=10)
+parser.add_argument("-m", "--max_trading_session", type=int,
+                    help="How many entries, maximally, can the environment take as data?", default=500)
 
-SEED = 256  # Seed of the model
-NO_ENTRIES_TAKING_AVG = 10  # No. entries to consider when taking average
+args = parser.parse_args()
 
-NO_ITERATIONS = 100000  # Number of iterations to train the A2C agent on?
-MAX_TRADING_SESSION = 500  # How many entries, maximally, can the environment take as data?
+STOCK_DIRECTORY = args.stock_dir
+TRAINING_STOCK = args.training_stock
+TESTING_STOCK = args.testing_stock
+
+INIT_INVEST = args.init_invest
+
+NO_ITERATIONS = args.no_iterations
+NO_ENTRIES_TAKING_AVG = args.no_entries_taking_avg
+MAX_TRADING_SESSION = args.max_trading_session
 
 # SETUP
 graphUtils.setup_graph()
-set_global_seeds(SEED)
 
 # DATA PREPARATION
 trainingDF = dataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
@@ -80,7 +92,7 @@ print()
 
 # MODEL TESTING
 # Prepare testing data
-testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK)
+testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # Generate baseline scores
 test_baselines = baselineUtils.Baselines(testingDF, render=False)
