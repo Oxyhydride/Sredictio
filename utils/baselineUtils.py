@@ -7,7 +7,7 @@ Updated on 2019-11-30
 
 Copyright Ryan Kan 2019
 
-Description: The baseline utilities - a class which houses the baseline algorithms
+Description: A python file which contains the baseline algorithms.
 """
 # IMPORTS
 import pandas as pd

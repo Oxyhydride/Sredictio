@@ -20,6 +20,9 @@ The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (f
 
 There spreadsheet currently contains 3 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
 
+## Where's the model stored?
+The model is saved as `Model.model` in the main directory. It saves the model's parameters.
+
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
 - Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.

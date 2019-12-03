@@ -1,13 +1,13 @@
 """
 optimise.py
-Version 1.0.2
+Version 1.0.3
 
 Created on 2019-11-30
-Updated on 2019-12-02
+Updated on 2019-12-03
 
 Copyright Ryan Kan 2019
 
-Description: A program that helps generate an Optuna study which contains the best hyperparameters
+Description: A program that helps generate an Optuna study which contains the best hyperparameters.
 """
 
 # IMPORTS
@@ -68,14 +68,14 @@ def optimise_a2c(trial):
 def optimise_agent(trial):
     # Prepare environments
     if VERBOSE:
-        print("Preparing environments...")
+        print("Preparing the environments...")
     
     train_env = TradingEnv(trainingDF)
     test_env = TradingEnv(testingDF)
 
     # Obtain model params
     if VERBOSE:
-        print("Obtained model params:")
+        print("Obtained the model params:")
     
     model_params = optimise_a2c(trial)
     
@@ -84,7 +84,7 @@ def optimise_agent(trial):
 
     # Prepare model
     if VERBOSE:
-        print("Preparing model...")
+        print("Preparing the model...")
     
     model = A2C(MlpLstmPolicy, DummyVecEnv([lambda: train_env]), verbose=0, **model_params)
 
@@ -96,7 +96,7 @@ def optimise_agent(trial):
 
     # Evaluate performance
     if VERBOSE:
-        print("Evaluating performance...")
+        print("Calculating the performance of the model...")
     
     total_inc, done = 0, False
     obs = test_env.reset()
@@ -112,7 +112,7 @@ def optimise_agent(trial):
 
     # Return performance
     if VERBOSE:
-        print("Return performance...")
+        print("Returning the performance...")
     
     return -float(total_inc)
 

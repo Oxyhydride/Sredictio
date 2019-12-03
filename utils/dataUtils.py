@@ -1,9 +1,9 @@
 """
 dataUtils.py
-Version 1.4.2
+Version 1.4.3
 
 Created on 2019-05-21
-Updated on 2019-11-30
+Updated on 2019-12-03
 
 Copyright Ryan Kan 2019
 
@@ -82,7 +82,7 @@ def get_data(stock_directory: str, stock_symbol: str):
 
             date2 = datetime.datetime.strptime(stock_arr_new[i + 1][0], "%Y-%m-%d")
 
-            if (date2 - date1).total_seconds() > 60 * 60 * 24:  # More than 1 day
+            if (date2 - date1).total_seconds() > 60 * 60 * 24:  # If it is more than 1 day
                 no_days_separation = int((date2 - date1).total_seconds() / (60 * 60 * 24))
 
                 difference_open = (stock_arr_new[i + 1][1] - stock_arr_new[i][1]) / no_days_separation
@@ -102,9 +102,6 @@ def get_data(stock_directory: str, stock_symbol: str):
         i += 1
 
     stock_arr = np.array(stock_arr_new[first_surpassed_index:-1], dtype=object)
-
-    # Clear memory
-    del stock_arr_new, sentiment_arr_new, first_date_processed, i, first_date, first_surpassed_index
 
     # Make both start on same day
     if sentiment_arr[0][0] != stock_arr[0][0]:
@@ -155,11 +152,11 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
      - entries_taking_avg, int: The number of entries to consider when taking the average
     """
 
-    def normalise(x_i, x_min, x_max, p=0, q=1):
+    def normalise(x_i, x_min, x_max, min_value=0, max_value=1):
         """
-        Normalises the data to be in the range p to q.
+        Normalises the data to be in the range `min_value` to `max_value`.
         """
-        return (((q - p) * (x_i - x_min)) / (x_max - x_min)) + p
+        return (((max_value - min_value) * (x_i - x_min)) / (x_max - x_min)) + min_value
 
     def moving_avg(arr, index, i_val, no_entries_taking_avg):
         """
@@ -168,17 +165,17 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
         return sum([x[index] for x in arr[i_val - no_entries_taking_avg:i_val]]) / no_entries_taking_avg
 
     # Get the data
-    dl = get_data(stock_directory, stock_symbol)
+    stock_data = get_data(stock_directory, stock_symbol)
 
     # Take moving average of both the stock values and the sentiment values
     averaged = []
 
-    for i in range(entries_taking_avg, len(dl)):  # Remove `entries_taking_avg` entries from the datalist
-        averaged.append([moving_avg(dl, 1, i, entries_taking_avg),
-                         moving_avg(dl, 2, i, entries_taking_avg),
-                         moving_avg(dl, 3, i, entries_taking_avg),
-                         moving_avg(dl, 4, i, entries_taking_avg),
-                         moving_avg(dl, 5, i, entries_taking_avg),
+    for i in range(entries_taking_avg, len(stock_data)):  # Remove `entries_taking_avg` entries from the datalist
+        averaged.append([moving_avg(stock_data, 1, i, entries_taking_avg),
+                         moving_avg(stock_data, 2, i, entries_taking_avg),
+                         moving_avg(stock_data, 3, i, entries_taking_avg),
+                         moving_avg(stock_data, 4, i, entries_taking_avg),
+                         moving_avg(stock_data, 5, i, entries_taking_avg),
                          ])
 
     # Find min and max from stocks
@@ -194,10 +191,10 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
     normed = []
 
     for entry in averaged:
-        normed.append([normalise(entry[0], min_val, max_val, p=1, q=10),
-                       normalise(entry[1], min_val, max_val, p=1, q=10),
-                       normalise(entry[2], min_val, max_val, p=1, q=10),
-                       normalise(entry[3], min_val, max_val, p=1, q=10),
+        normed.append([normalise(entry[0], min_val, max_val, min_value=1, max_value=10),
+                       normalise(entry[1], min_val, max_val, min_value=1, max_value=10),
+                       normalise(entry[2], min_val, max_val, min_value=1, max_value=10),
+                       normalise(entry[3], min_val, max_val, min_value=1, max_value=10),
                        entry[4]])
 
     # Convert `normed` to a pandas dataframe

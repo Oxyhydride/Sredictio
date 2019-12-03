@@ -1,9 +1,9 @@
 """
 graphUtils.py
-Version 1.4.1
+Version 1.4.2
 
 Created on 2019-09-08
-Updated on 2019-11-30
+Updated on 2019-12-03
 
 Copyright Ryan Kan 2019
 
@@ -11,7 +11,7 @@ Description: The utilities required to plot the graphs
 """
 # IMPORTS
 import seaborn as sns
-from pylab import rcParams
+from matplotlib import rcParams
 
 
 # FUNCTIONS
@@ -20,5 +20,5 @@ def setup_graph(render=False):
     if not render:
         rcParams['figure.figsize'] = 14, 8
 
-    # Setup Seaborn style
+    # Setup Seaborn
     sns.set(style='white', palette='muted', font_scale=1.5)

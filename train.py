@@ -1,6 +1,6 @@
 """
 train.py
-Version 1.1.1
+Version 1.1.2
 
 Created on 2019-11-30
 Updated on 2019-12-03
@@ -145,5 +145,5 @@ print("A2C - RSI Divergence = {:.3f}".format(a2cScore - test_baseline_scores[1])
 print("A2C - SMA Crossover = {:.3f}".format(a2cScore - test_baseline_scores[2]))
 print()
 
-# SAVE MODEL
+# SAVE THE MODEL
 model.save(OUTPUT_FILE)
