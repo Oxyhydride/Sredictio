@@ -1,6 +1,6 @@
 """
 optimise.py
-Version 1.0.1
+Version 1.0.2
 
 Created on 2019-11-30
 Updated on 2019-12-02
@@ -36,7 +36,7 @@ parser.add_argument("-t", "--no_trials", type=int, help="Number of trials to fin
 parser.add_argument("-n", "--no_parallel_jobs", type=int, help="Number of parallel jobs", default=1)
 parser.add_argument("-f", "--output_file", type=str, help="Output name of the sqlite database",
                     default="hyperparams.db")
-parser.add_argument("-v", "--verbose", choices=["0", "1"], help="Set verbose type. 0 = None, 1 = All")
+parser.add_argument("-v", "--verbose", choices=["0", "1"], help="Set verbose type. 0 = None, 1 = All", default="1")
 
 args = parser.parse_args()
 
