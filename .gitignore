@@ -1,7 +1,7 @@
 # Folders to be excluded
 **/.idea/
 **/.ipynb_checkpoints/
-./tensorboard/
+tensorboard/
 
 # Files to be excluded
 **/.DS_Store
