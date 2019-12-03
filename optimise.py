@@ -1,6 +1,6 @@
 """
 optimise.py
-Version 0.1.0
+Version 1.0.1
 
 Created on 2019-11-30
 Updated on 2019-12-02
@@ -36,6 +36,7 @@ parser.add_argument("-t", "--no_trials", type=int, help="Number of trials to fin
 parser.add_argument("-n", "--no_parallel_jobs", type=int, help="Number of parallel jobs", default=1)
 parser.add_argument("-f", "--output_file", type=str, help="Output name of the sqlite database",
                     default="hyperparams.db")
+parser.add_argument("-v", "--verbose", choices=["0", "1"], help="Set verbose type. 0 = None, 1 = All")
 
 args = parser.parse_args()
 
@@ -46,6 +47,8 @@ OUTPUT_FILE = args.output_file
 
 NO_TRIALS = args.no_trials
 NO_JOBS = args.no_parallel_jobs
+
+VERBOSE = int(args.verbose) == 1
 
 # DATA PREPARATION
 trainingDF = dataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK)
@@ -64,25 +67,37 @@ def optimise_a2c(trial):
 
 def optimise_agent(trial):
     # Prepare environments
-    print("Preparing environments...")
+    if VERBOSE:
+        print("Preparing environments...")
+    
     train_env = TradingEnv(trainingDF)
     test_env = TradingEnv(testingDF)
 
     # Obtain model params
-    print("Obtained model params:")
+    if VERBOSE:
+        print("Obtained model params:")
+    
     model_params = optimise_a2c(trial)
-    print(model_params)
+    
+    if VERBOSE:
+        print(model_params)
 
     # Prepare model
-    print("Preparing model...")
+    if VERBOSE:
+        print("Preparing model...")
+    
     model = A2C(MlpLstmPolicy, DummyVecEnv([lambda: train_env]), verbose=0, **model_params)
 
     # Train model
-    print("Training model...")
+    if VERBOSE:
+        print("Training model...")
+    
     model.learn(len(train_env.data_arr))
 
     # Evaluate performance
-    print("Evaluating performance...")
+    if VERBOSE:
+        print("Evaluating performance...")
+    
     total_inc, done = 0, False
     obs = test_env.reset()
 
@@ -96,7 +111,9 @@ def optimise_agent(trial):
             break
 
     # Return performance
-    print("Return performance...")
+    if VERBOSE:
+        print("Return performance...")
+    
     return -float(total_inc)
 
 
