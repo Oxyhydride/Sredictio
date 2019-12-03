@@ -1,9 +1,9 @@
 """
 TradingEnv.py
-Version 1.17.5
+Version 1.18.0
 
 Created on 2019-06-03
-Updated on 2019-11-30
+Updated on 2019-12-03
 
 Copyright Ryan Kan 2019
 
@@ -34,7 +34,8 @@ class TradingEnv(gym.Env):
     viewer = None
 
     def __init__(self, data_df: pd.DataFrame, init_invest: float = 25.0, reward_len: int = 32,
-                 look_back_window_size: int = 5, is_serial: bool = False, max_trading_session: int = 100):
+                 look_back_window_size: int = 5, is_serial: bool = False, max_trading_session: int = 100,
+                 seed: int = None):
         """
         Initialization function for the trading environment.
 
@@ -45,17 +46,23 @@ class TradingEnv(gym.Env):
         - look_back_window_size, int: How many entries can the agent look back? (Default = 5)
         - is_serial, bool: Is the environment serial (i.e. following a strict sequence)? (Default = False)
         - max_trading_session, int: How many entries, maximally, can the environment take as data? (Default = 100)
+        - seed, int: The seed for the environment. (Default = None)
         """
         # Convert given data into variables
         self.data_df = data_df  # This is the dataframe where all the data is stored
-        self.full_data_arr = self.data_df.values  # All the values, converted into a np.array
         self.init_invest = init_invest  # Initial investment value
         self.reward_len = reward_len  # Length of reward consideration array
         self.look_back_window = look_back_window_size  # Size of the look_back window
         self.is_serial = is_serial  # Is the environment serial?
         self.max_trading_session = max_trading_session  # The maximum length for a trading session
+        self.env_seed = seed  # The random seed
+
+        # Seed environment
+        self.seed(seed=self.env_seed)
 
         # Create the histories
+        self.full_data_arr = self.data_df.values  # All the values, converted into a np.array
+
         self.open_history = [x[0] for x in self.full_data_arr]  # All the `Open` values for the stock
         self.high_history = [x[1] for x in self.full_data_arr]  # All the `High` values for the stock
         self.low_history = [x[2] for x in self.full_data_arr]  # All the `Low` values for the stock
@@ -92,7 +99,6 @@ class TradingEnv(gym.Env):
         stock_max = max(max(self.open_history),
                         max(max(self.high_history), max(max(self.low_history), max(self.close_history))))
 
-        # TODO: FIX OBSERVATION SPACE DEFINITION BELOW, IF NEEDED
         self.observation_space = gym.spaces.Box(low=-1, high=init_invest * 3 * (1 + (1 // stock_max)),
                                                 shape=(8, self.look_back_window), dtype=np.float32)
 
@@ -107,6 +113,15 @@ class TradingEnv(gym.Env):
 
         # Reset env and start
         self.reset()
+
+    def seed(self, seed=None):
+        """
+        Seeds the environment.
+
+        Keyword arguments:
+        - seed, int: Seed of the environment. (Default = None)
+        """
+        np.random.seed(seed)
 
     def generate_data_arr(self, serial):
         """
