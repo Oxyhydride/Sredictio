@@ -1,6 +1,6 @@
 """
 optimise.py
-Version 1.0.3
+Version 1.0.4
 
 Created on 2019-11-30
 Updated on 2019-12-03
@@ -59,7 +59,6 @@ testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK)
 def optimise_a2c(trial):
     return {
         "gamma": trial.suggest_loguniform("gamma", 0.9, 0.9999),
-        "n_steps": trial.suggest_int("n_steps", 16, 512),
         "ent_coef": trial.suggest_loguniform("ent_coef", 1e-8, 1e-1),
         "learning_rate": trial.suggest_loguniform("learning_rate", 1e-5, 1.)
     }
