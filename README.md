@@ -18,12 +18,16 @@ The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (f
 ## What's with the spreadsheet?
 `Sredictio Data Tracking.xlsx` is an excel spreadsheet used to document all the tests done on the data and on the A2C agent.
 
-There spreadsheet currently contains 3 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
 
 ## Where's the model stored?
-The model is saved as `Model.model` in the main directory. It saves the model's parameters.
+The model is saved as a `.zip` file in the main directory. It currently is named `Model_LBW-5_NOI-100000.zip`.
+
+For more on the model, refer to [here](https://stable-baselines.readthedocs.io/en/master/guide/save_format.html) for more info.
 
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
 - Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
 - Cover image taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
+
+## Acknowledgements
+- Thanks to OpenAI and DeepMind for sharing these open-source Deep Learning resources to us!
