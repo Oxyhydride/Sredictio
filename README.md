@@ -18,6 +18,7 @@ The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (f
 ## What's with the spreadsheet?
 `Sredictio Data Tracking.xlsx` is an excel spreadsheet used to document all the tests done on the data and on the A2C agent.
 
+There spreadsheet currently contains 4 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
 
 ## Where's the model stored?
 The model is saved as a `.zip` file in the main directory. It currently is named `Model_LBW-5_NOI-100000.zip`.
