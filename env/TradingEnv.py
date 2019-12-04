@@ -215,7 +215,7 @@ class TradingEnv(gym.Env):
         Returns:
         - Observation list (List)
         """
-        
+
         return np.array([self.stock_owned_history[-self.look_back_window:],
                          self.open_history[self.cur_step - self.look_back_window: self.cur_step],
                          self.high_history[self.cur_step - self.look_back_window: self.cur_step],

@@ -1,9 +1,9 @@
 """
 train.py
-Version 1.1.2
+Version 1.1.3
 
 Created on 2019-11-30
-Updated on 2019-12-03
+Updated on 2019-12-04
 
 Copyright Ryan Kan 2019
 
@@ -30,7 +30,7 @@ parser.add_argument("training_stock", type=str, help="Which stock file should be
 parser.add_argument("testing_stock", type=str, help="Which stock file should be used for testing?")
 parser.add_argument("study_file", type=str, help="Where are the parameters stored?")
 
-parser.add_argument("-o", "--output_file", type=str, help="Name of the output file", default="Model.model")
+parser.add_argument("-o", "--output_file_prefix", type=str, help="Prefix of the output file", default="Model")
 parser.add_argument("-i", "--init_invest", type=float, help="Initial investment amount", default=25.0)
 parser.add_argument("-n", "--no_iterations", type=int, default=50000,
                     help="Number of iterations to train the A2C agent")
@@ -38,6 +38,8 @@ parser.add_argument("-a", "--no_entries_taking_avg", type=int, help="Number of e
                     default=10)
 parser.add_argument("-m", "--max_trading_session", type=int,
                     help="How many entries, maximally, can the environment take as data?", default=500)
+parser.add_argument("-l", "--look_back_window", type=int, default=5,
+                    help="How many entries can the model look back into?")
 parser.add_argument("-s", "--set_seed", type=int, help="Set the seed of the program", default=None)
 parser.add_argument("-r", "--render_type", choices=["0", "1", "2"], default="1",
                     help="What should the program render? 0 = None, 1 = Only A2C Renders, 2 = All renders")
@@ -47,13 +49,14 @@ args = parser.parse_args()
 STOCK_DIRECTORY = args.stock_dir
 TRAINING_STOCK = args.training_stock
 TESTING_STOCK = args.testing_stock
-OUTPUT_FILE = args.output_file
+OUTPUT_FILE_PREFIX = args.output_file_prefix
 
 INIT_INVEST = args.init_invest
 
 NO_ITERATIONS = args.no_iterations
 NO_ENTRIES_TAKING_AVG = args.no_entries_taking_avg
 MAX_TRADING_SESSION = args.max_trading_session
+LOOK_BACK_WINDOW = args.look_back_window
 OPTUNA_STUDY_FILE = args.study_file
 
 SEED = args.set_seed
@@ -79,7 +82,7 @@ params = study.best_trial.params
 # MODEL TRAINING
 # Define a environment for the agent to train on
 agentEnv = TradingEnv(trainingDF, init_invest=INIT_INVEST, max_trading_session=MAX_TRADING_SESSION, is_serial=False,
-                      seed=SEED)
+                      seed=SEED, look_back_window_size=LOOK_BACK_WINDOW)
 trainEnv = DummyVecEnv([lambda: agentEnv])
 
 # Create an A2C agent
@@ -90,7 +93,8 @@ model.learn(total_timesteps=NO_ITERATIONS, seed=SEED)
 
 # MODEL EVALUATION
 # How well did our model perform on the training data?
-a2cEnv = TradingEnv(trainingDF, init_invest=INIT_INVEST, is_serial=True, seed=SEED)
+a2cEnv = TradingEnv(trainingDF, init_invest=INIT_INVEST, is_serial=True, seed=SEED,
+                    look_back_window_size=LOOK_BACK_WINDOW)
 done = False
 
 train_state = a2cEnv.reset()
@@ -122,7 +126,8 @@ test_baselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))
 test_baseline_scores = test_baselines.run_policies()
 
 # Run the A2C agent on the testing data
-a2cEnv = TradingEnv(testingDF, init_invest=INIT_INVEST, is_serial=True)  # For training purposes
+a2cEnv = TradingEnv(testingDF, init_invest=INIT_INVEST, is_serial=True,
+                    look_back_window_size=LOOK_BACK_WINDOW)  # For testing purposes
 done = False
 
 test_state = a2cEnv.reset()
@@ -146,4 +151,4 @@ print("A2C - SMA Crossover = {:.3f}".format(a2cScore - test_baseline_scores[2]))
 print()
 
 # SAVE THE MODEL
-model.save(OUTPUT_FILE)
+model.save(f"{OUTPUT_FILE_PREFIX}_LBW-{LOOK_BACK_WINDOW}_NOI-{NO_ITERATIONS}.zip")  # Saved as Zip-archive

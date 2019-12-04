@@ -1,6 +1,6 @@
 """
 dataUtils.py
-Version 1.4.3
+Version 1.4.4
 
 Created on 2019-05-21
 Updated on 2019-12-03
@@ -15,6 +15,8 @@ import datetime
 import numpy as np
 import pandas as pd
 from pandas import read_csv
+
+from .miscUtils import normalise, moving_average
 
 
 # FUNCTIONS
@@ -152,18 +154,6 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
      - entries_taking_avg, int: The number of entries to consider when taking the average
     """
 
-    def normalise(x_i, x_min, x_max, min_value=0, max_value=1):
-        """
-        Normalises the data to be in the range `min_value` to `max_value`.
-        """
-        return (((max_value - min_value) * (x_i - x_min)) / (x_max - x_min)) + min_value
-
-    def moving_avg(arr, index, i_val, no_entries_taking_avg):
-        """
-        Computes the moving average list given an array `arr`.
-        """
-        return sum([x[index] for x in arr[i_val - no_entries_taking_avg:i_val]]) / no_entries_taking_avg
-
     # Get the data
     stock_data = get_data(stock_directory, stock_symbol)
 
@@ -171,11 +161,11 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
     averaged = []
 
     for i in range(entries_taking_avg, len(stock_data)):  # Remove `entries_taking_avg` entries from the datalist
-        averaged.append([moving_avg(stock_data, 1, i, entries_taking_avg),
-                         moving_avg(stock_data, 2, i, entries_taking_avg),
-                         moving_avg(stock_data, 3, i, entries_taking_avg),
-                         moving_avg(stock_data, 4, i, entries_taking_avg),
-                         moving_avg(stock_data, 5, i, entries_taking_avg),
+        averaged.append([moving_average(stock_data, 1, i, entries_taking_avg),
+                         moving_average(stock_data, 2, i, entries_taking_avg),
+                         moving_average(stock_data, 3, i, entries_taking_avg),
+                         moving_average(stock_data, 4, i, entries_taking_avg),
+                         moving_average(stock_data, 5, i, entries_taking_avg),
                          ])
 
     # Find min and max from stocks
@@ -191,10 +181,10 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
     normed = []
 
     for entry in averaged:
-        normed.append([normalise(entry[0], min_val, max_val, min_value=1, max_value=10),
-                       normalise(entry[1], min_val, max_val, min_value=1, max_value=10),
-                       normalise(entry[2], min_val, max_val, min_value=1, max_value=10),
-                       normalise(entry[3], min_val, max_val, min_value=1, max_value=10),
+        normed.append([normalise(entry[0], min_val, max_val, min_normalised_value=1, max_normalised_value=10),
+                       normalise(entry[1], min_val, max_val, min_normalised_value=1, max_normalised_value=10),
+                       normalise(entry[2], min_val, max_val, min_normalised_value=1, max_normalised_value=10),
+                       normalise(entry[3], min_val, max_val, min_normalised_value=1, max_normalised_value=10),
                        entry[4]])
 
     # Convert `normed` to a pandas dataframe
