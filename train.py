@@ -1,9 +1,9 @@
 """
 train.py
-Version 1.1.3
+Version 1.1.4
 
 Created on 2019-11-30
-Updated on 2019-12-04
+Updated on 2019-12-05
 
 Copyright Ryan Kan 2019
 
@@ -41,12 +41,12 @@ parser.add_argument("-m", "--max_trading_session", type=int,
 parser.add_argument("-l", "--look_back_window", type=int, default=5,
                     help="How many entries can the model look back into?")
 parser.add_argument("-s", "--set_seed", type=int, help="Set the seed of the program", default=None)
-parser.add_argument("-r", "--render_type", choices=["0", "1", "2"], default="1",
+parser.add_argument("-r", "--render_type", choices=["0", "1", "2"], default="0",
                     help="What should the program render? 0 = None, 1 = Only A2C Renders, 2 = All renders")
 
 args = parser.parse_args()
 
-STOCK_DIRECTORY = args.stock_dir
+STOCK_DIRECTORY = args.stock_dir if args.stock_dir[-1] == "/" else args.stock_dir + "/"
 TRAINING_STOCK = args.training_stock
 TESTING_STOCK = args.testing_stock
 OUTPUT_FILE_PREFIX = args.output_file_prefix

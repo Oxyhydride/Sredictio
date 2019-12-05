@@ -1,9 +1,9 @@
 """
 main.py
-Version 1.0.0
+Version 1.1.0
 
 Created on 2019-12-04
-Updated on 2019-12-04
+Updated on 2019-12-05
 
 Copyright Ryan Kan 2019
 
@@ -30,20 +30,23 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
 
-parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Alphabet Inc, Tesla")
-parser.add_argument("stock_symbol", type=str, help="The stock's symbol. E.G. AMZN, AAPL, GOOGL, TSLA")
+parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Alphabet Inc/Google, Tesla")
+parser.add_argument("stock_symbol", type=str,
+                    help="The stock's symbol. Also known as the ticker. E.G. AMZN, AAPL, GOOGL, TSLA")
 parser.add_argument("stock_history_file", type=str, help="The stock history file, usually saved as a .csv.")
-parser.add_argument("model_file", type=str, help="The model file")
+parser.add_argument("model_file", type=str, help="The model file, usually saved as a .zip file.")
 parser.add_argument("look_back_window", type=int, help="The look back window size. Can be found in the model name, "
                                                        "next to `LBW`. E.G. `LBW-7` means look_back_window = 7. Note "
                                                        "that days_to_scrape_data has to be larger than twice the "
                                                        "look_back_window")
 
-parser.add_argument("-d", "--days_to_scrape_data", type=int, default=60,
+parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
                     help="The number of days to scrape the stock and sentiment data. Note that days_to_scrape_data "
                          "has to be larger than twice the look_back_window")
 parser.add_argument("-v", "--verbose", choices=["0", "1"],
                     help="Set the verbosity of the program", default="1")
+parser.add_argument("-p", "--no_predictions", type=int,
+                    help="Number of predictions to run when choosing the action to take", default=1000)
 
 args = parser.parse_args()
 
@@ -55,6 +58,7 @@ DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 
 MODEL_FILE = args.model_file
 LOOK_BACK_WINDOW = args.look_back_window
+NO_PREDICTIONS = int(args.no_predictions)
 
 VERBOSE = int(args.verbose)
 
@@ -64,7 +68,7 @@ assert 2 * LOOK_BACK_WINDOW < DAYS_TO_SCRAPE, "Days to scrape data has to be lar
 # OBTAINING DATA
 # Get stock data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.lower()} stock data...")
+    print(f"Obtaining {STOCK_NAME.capitalize()} stock data...")
 
 stockDataFrame = si.get_data(STOCK_SYMBOL,
                              start_date=(datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
@@ -73,7 +77,7 @@ stockDataFrame = si.get_data(STOCK_SYMBOL,
 
 # Get sentiment data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.lower()} sentiment data...")
+    print(f"Obtaining {STOCK_NAME.capitalize()} sentiment data...")
 
 sentimentDataFrame = get_sentiment(STOCK_SYMBOL, STOCK_NAME,
                                    (datetime.date.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
@@ -115,7 +119,7 @@ while True:
             sarimaxValues[i] = list(forecast)
 
         # Fill in SARIMAX values
-        for i in range(stockDataIndex, stockDataIndex + daysDifference):
+        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, LOOK_BACK_WINDOW)):
             for j in range(4):  # 4 Columns
                 stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
 
@@ -244,17 +248,42 @@ if VERBOSE:
 # Load A2C model
 model = A2C.load(MODEL_FILE)
 
-# Return an action for the current state
-action, _ = model.predict([observation])
-suggestedAction = action[0]
+# Generate possible actions
+suggestedActionsCount = {"Sell": 0, "Hold": 0, "Buy": 0}  # Tally the number of times the model suggests each action
+suggestedAmounts = {"Sell": [], "Hold": [], "Buy": []}  # Tally the amount for each action type
+
+for _ in range(NO_PREDICTIONS):
+    action, _ = model.predict([observation])
+    suggestedAction = action[0]
+
+    if suggestedAction[0] == 0:  # Sell
+        suggestedActionsCount["Sell"] += 1
+        suggestedAmounts["Sell"].append(suggestedAction[1])
+
+    elif suggestedAction[0] == 1:  # Hold
+        suggestedActionsCount["Hold"] += 1
+        suggestedAmounts["Hold"].append(suggestedAction[1])
+
+    else:  # Buy
+        suggestedActionsCount["Buy"] += 1
+        suggestedAmounts["Buy"].append(suggestedAction[1])
+
+# Find most probable action
+highestCount = max(list(suggestedActionsCount.values()))
+bestAction = list(suggestedActionsCount.keys())[list(suggestedActionsCount.values()).index(highestCount)]
+
+# Get amount
+possibleAmounts = suggestedAmounts[bestAction]
+bestAmount = max(set(possibleAmounts), key=possibleAmounts.count)
 
 # Output action & amount
 print()
-if suggestedAction[0] == 0:  # Sell
-    print(f"Sell {suggestedAction[1]}/10 of owned stocks (if possible).")
+print(f"Current stock price is at {observation[4][-1]}.")
+if bestAction == "Sell":
+    print(f"Sell {bestAmount}/10 of owned stocks (if possible).")
 
-elif suggestedAction[0] == 1:  # Hold
+elif (bestAction == "Hold") or (bestAmount == 0):
     print("Hold the stocks.")
 
 else:  # Buy
-    print(f"Buy stocks using {suggestedAction[1]}/10 of total balance (if possible).")
+    print(f"Buy stocks using {bestAmount}/10 of total balance (if possible).")
