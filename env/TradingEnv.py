@@ -1,9 +1,9 @@
 """
 TradingEnv.py
-Version 1.18.0
+Version 1.19.0
 
 Created on 2019-06-03
-Updated on 2019-12-03
+Updated on 2019-12-06
 
 Copyright Ryan Kan 2019
 
@@ -23,8 +23,7 @@ class TradingEnv(gym.Env):
     """
     The trading environment.
 
-    Observation State: [# of stock owned, open history, high history, low history, close history,
-                        sentiment history, cash in hand history, net worth history]
+    Observation State: [# of stock owned, open history, high history, low history, close history, sentiment history]
 
     Action Space:
     - 3 Actions: Sell [0], Hold [1], Buy [2]
@@ -41,7 +40,7 @@ class TradingEnv(gym.Env):
 
         Keyword arguments:
         - data_df, pd.DataFrame: A pandas dataframe containing all the data.
-        - init_invest, float: Starting cash (Default = 5.0)
+        - init_invest, float: Starting cash (Default = 25.0)
         - reward_len, int: No of entries to consider when calculating reward (Default = 32)
         - look_back_window_size, int: How many entries can the agent look back? (Default = 5)
         - is_serial, bool: Is the environment serial (i.e. following a strict sequence)? (Default = False)
@@ -88,19 +87,20 @@ class TradingEnv(gym.Env):
         self.actions_amounts = []
 
         # Observation space variables
-        self.net_worths = None
         self.stock_owned_history = None
-        self.cash_in_hand_history = None
+        self.net_worths = None
 
         # Action space
         self.action_space = gym.spaces.MultiDiscrete([3, 10])
 
         # Observation space: give estimates in order to sample and build scalar
         stock_max = max(max(self.open_history),
-                        max(max(self.high_history), max(max(self.low_history), max(self.close_history))))
+                        max(max(self.high_history),
+                            max(max(self.low_history),
+                                max(self.close_history))))
 
         self.observation_space = gym.spaces.Box(low=-1, high=init_invest * 3 * (1 + (1 // stock_max)),
-                                                shape=(8, self.look_back_window), dtype=np.float32)
+                                                shape=(6, self.look_back_window), dtype=np.float32)
 
         # Rendering variables
         self.fig = None
@@ -114,7 +114,7 @@ class TradingEnv(gym.Env):
         # Reset env and start
         self.reset()
 
-    def seed(self, seed=None):
+    def seed(self, seed: int = None):
         """
         Seeds the environment.
 
@@ -123,7 +123,7 @@ class TradingEnv(gym.Env):
         """
         np.random.seed(seed)
 
-    def generate_data_arr(self, serial):
+    def generate_data_arr(self, serial: bool):
         """
         Generates the new data_arr.
 
@@ -165,7 +165,6 @@ class TradingEnv(gym.Env):
 
         self.net_worths = [self.init_invest] * self.look_back_window
         self.stock_owned_history = [0] * self.look_back_window
-        self.cash_in_hand_history = [self.init_invest] * self.look_back_window
 
         self.fig = None
         self.net_worth_ax = None
@@ -190,8 +189,8 @@ class TradingEnv(gym.Env):
         Returns:
         - Observation space (List)
         - reward: Reward for taking the action (Float)
-        - done: Whether the environment has completed its cycle (Boolean Value)
-        - info: Useful info (String)
+        - done: Whether the environment has completed its cycle (Boolean)
+        - info: Useful info (Dictionary)
         """
         # Move forward one day in time
         self.cur_step += 1
@@ -208,49 +207,12 @@ class TradingEnv(gym.Env):
 
         return self.get_obs(), reward, self.done, info
 
-    def get_obs(self):
-        """
-        Gets the observation list.
-
-        Returns:
-        - Observation list (List)
-        """
-
-        return np.array([self.stock_owned_history[-self.look_back_window:],
-                         self.open_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.high_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.low_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.close_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.sentiment_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.cash_in_hand_history[-self.look_back_window:],
-                         self.net_worths[-self.look_back_window:]])
-
-    def get_val(self):
-        """
-        Calculates the current portfolio value of the Agent.
-
-        Returns:
-        - Portfolio value (Float)
-        """
-        return self.stock_owned * self.close_history[self.cur_step] + self.cash_in_hand
-
-    def gen_reward(self):
-        """
-        Generates the reward based on the reward function defined.
-
-        REWARD FUNCTION: Difference
-        Take current net worth - previous net worth.
-        """
-        reward = self.net_worths[-1] - self.net_worths[-2]
-
-        return reward if np.isfinite(reward) else 0
-
-    def trade(self, action):
+    def trade(self, action: (int, int)):
         """
         Helper function to "trade" the stocks
 
         Keyword arguments:
-        - action: Action to take (Integer)
+        - action, (int, int): Action to take
         """
         # Check if done
         self.done = (self.cur_step >= self.end_index)  # Only will be done if the current step is the ending step
@@ -276,9 +238,6 @@ class TradingEnv(gym.Env):
             self.cash_in_hand -= self.open_history[self.cur_step] * stock_bought
             self.stock_owned += stock_bought
 
-        # Append new cash in hand to cash_in_hand_history
-        self.cash_in_hand_history.append(self.cash_in_hand)
-
         # Append new stock quantity to stock_owned_history
         self.stock_owned_history.append(self.stock_owned)
 
@@ -289,7 +248,42 @@ class TradingEnv(gym.Env):
         self.actions_amounts.append(action[1] / 10 if action[0] == 2 else (
             -action[1] / 10 if action[0] == 0 else 0))  # Negative values = Selling
 
-    def render(self, mode="human"):
+    def get_val(self):
+        """
+        Calculates the current portfolio value of the Agent.
+
+        Returns:
+        - Portfolio value (Float)
+        """
+        return self.stock_owned * self.close_history[self.cur_step] + self.cash_in_hand
+
+    def gen_reward(self):
+        """
+        Generates the reward based on the reward function defined.
+
+        REWARD FUNCTION: Difference
+        Take current net worth - previous net worth.
+        """
+        reward = self.net_worths[-1] - self.net_worths[-2]
+
+        return reward if np.isfinite(reward) else 0
+
+    def get_obs(self):
+        """
+        Gets the observation list.
+
+        Returns:
+        - Observation list (List)
+        """
+
+        return np.array([self.stock_owned_history[-self.look_back_window:],
+                         self.open_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.high_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.low_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.close_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.sentiment_history[self.cur_step - self.look_back_window: self.cur_step]])
+
+    def render(self, mode: str = "human"):
         if mode == "human":
             if self.cur_step == self.start_index + 1:
                 # Render setup
