@@ -1,9 +1,9 @@
 """
 optimise.py
-Version 1.0.4
+Version 1.0.5
 
 Created on 2019-11-30
-Updated on 2019-12-03
+Updated on 2019-12-06
 
 Copyright Ryan Kan 2019
 
