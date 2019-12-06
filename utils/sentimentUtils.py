@@ -1,9 +1,9 @@
 """
 sentimentUtils.py
-Version 3.1.0
+Version 3.1.1
 
 Created on 2019-04-29
-Updated on 2019-12-04
+Updated on 2019-12-06
 
 Copyright Ryan Kan
 
@@ -20,7 +20,7 @@ from urllib.request import Request, urlopen
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from .miscUtils import natural_sort
+from utils.miscUtils import natural_sort
 
 
 # FUNCTIONS
@@ -129,3 +129,9 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 
     else:
         return sentiment_dataframe
+
+
+if __name__ == "__main__":
+    # Debugging
+    sentimentDF = get_sentiment("FB", "Facebook", "2019-11-20", to_csv=False)
+    print(sentimentDF)
