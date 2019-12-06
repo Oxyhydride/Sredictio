@@ -40,7 +40,7 @@ parser.add_argument("-v", "--verbose", choices=["0", "1"], help="Set verbose typ
 
 args = parser.parse_args()
 
-STOCK_DIRECTORY = args.stock_dir
+STOCK_DIRECTORY = args.stock_dir if args.stock_dir[-1] == "/" else args.stock_dir + "/"
 TRAINING_STOCK = args.training_stock
 TESTING_STOCK = args.testing_stock
 OUTPUT_FILE = args.output_file
