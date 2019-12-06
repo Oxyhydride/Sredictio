@@ -1,9 +1,9 @@
 """
 TradingEnv.py
-Version 1.18.0
+Version 1.18.1
 
 Created on 2019-06-03
-Updated on 2019-12-03
+Updated on 2019-12-06
 
 Copyright Ryan Kan 2019
 
@@ -41,7 +41,7 @@ class TradingEnv(gym.Env):
 
         Keyword arguments:
         - data_df, pd.DataFrame: A pandas dataframe containing all the data.
-        - init_invest, float: Starting cash (Default = 5.0)
+        - init_invest, float: Starting cash (Default = 25.0)
         - reward_len, int: No of entries to consider when calculating reward (Default = 32)
         - look_back_window_size, int: How many entries can the agent look back? (Default = 5)
         - is_serial, bool: Is the environment serial (i.e. following a strict sequence)? (Default = False)
@@ -97,7 +97,9 @@ class TradingEnv(gym.Env):
 
         # Observation space: give estimates in order to sample and build scalar
         stock_max = max(max(self.open_history),
-                        max(max(self.high_history), max(max(self.low_history), max(self.close_history))))
+                        max(max(self.high_history), 
+                            max(max(self.low_history), 
+                                max(self.close_history))))
 
         self.observation_space = gym.spaces.Box(low=-1, high=init_invest * 3 * (1 + (1 // stock_max)),
                                                 shape=(8, self.look_back_window), dtype=np.float32)
@@ -114,7 +116,7 @@ class TradingEnv(gym.Env):
         # Reset env and start
         self.reset()
 
-    def seed(self, seed=None):
+    def seed(self, seed: int = None):
         """
         Seeds the environment.
 
@@ -123,7 +125,7 @@ class TradingEnv(gym.Env):
         """
         np.random.seed(seed)
 
-    def generate_data_arr(self, serial):
+    def generate_data_arr(self, serial: bool):
         """
         Generates the new data_arr.
 
@@ -180,12 +182,13 @@ class TradingEnv(gym.Env):
 
         return self.get_obs()
 
-    def step(self, action: list):
+    def step(self, action: tuple):
         """
         Moves forward one step in time.
 
         Keyword arguments:
-        - action, list: Action-Amount pair, representing the action to take and the amount bought/sold.
+        - action, tuple in the form (int, int): Action-Amount pair, representing the action to take and the amount
+                                                bought/sold.
 
         Returns:
         - Observation space (List)
@@ -208,49 +211,12 @@ class TradingEnv(gym.Env):
 
         return self.get_obs(), reward, self.done, info
 
-    def get_obs(self):
+    def trade(self, action: tuple):
         """
-        Gets the observation list.
-
-        Returns:
-        - Observation list (List)
-        """
-
-        return np.array([self.stock_owned_history[-self.look_back_window:],
-                         self.open_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.high_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.low_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.close_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.sentiment_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.cash_in_hand_history[-self.look_back_window:],
-                         self.net_worths[-self.look_back_window:]])
-
-    def get_val(self):
-        """
-        Calculates the current portfolio value of the Agent.
-
-        Returns:
-        - Portfolio value (Float)
-        """
-        return self.stock_owned * self.close_history[self.cur_step] + self.cash_in_hand
-
-    def gen_reward(self):
-        """
-        Generates the reward based on the reward function defined.
-
-        REWARD FUNCTION: Difference
-        Take current net worth - previous net worth.
-        """
-        reward = self.net_worths[-1] - self.net_worths[-2]
-
-        return reward if np.isfinite(reward) else 0
-
-    def trade(self, action):
-        """
-        Helper function to "trade" the stocks
+        A function to help to "trade" the stocks.
 
         Keyword arguments:
-        - action: Action to take (Integer)
+        - action, tuple in the form (int, int): Action-Amount pair.
         """
         # Check if done
         self.done = (self.cur_step >= self.end_index)  # Only will be done if the current step is the ending step
@@ -289,7 +255,55 @@ class TradingEnv(gym.Env):
         self.actions_amounts.append(action[1] / 10 if action[0] == 2 else (
             -action[1] / 10 if action[0] == 0 else 0))  # Negative values = Selling
 
-    def render(self, mode="human"):
+    def get_val(self):
+        """
+        Calculates the current portfolio value of the Agent.
+
+        Returns:
+        - Portfolio value (Float)
+        """
+        return self.stock_owned * self.close_history[self.cur_step] + self.cash_in_hand
+
+    def gen_reward(self):
+        """
+        Generates the reward by taking the difference between the current net worth and the previous net worth.
+        i.e. Reward = CurrentNetWorth - PreviousNetWorth
+
+        Returns:
+        - Reward (Float)
+        """
+        reward = self.net_worths[-1] - self.net_worths[-2]
+
+        return reward
+
+    def get_obs(self):
+        """
+        Gets the observation list.
+
+        The observation list is defined as follows:
+        [# of stock owned, open history, high history, low history, close history, sentiment history,
+         cash in hand history, net worth history]
+
+        Returns:
+        - Observation list (List)
+        """
+
+        return np.array([self.stock_owned_history[-self.look_back_window:],
+                         self.open_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.high_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.low_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.close_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.sentiment_history[self.cur_step - self.look_back_window: self.cur_step],
+                         self.cash_in_hand_history[-self.look_back_window:],
+                         self.net_worths[-self.look_back_window:]])
+
+    def render(self, mode: str = "human"):
+        """
+        Renders the trading environment.
+
+        Keyword arguments:
+        - mode, str: The mode to render the environment in. (Default = "human")
+        """
         if mode == "human":
             if self.cur_step == self.start_index + 1:
                 # Render setup
@@ -407,4 +421,6 @@ class TradingEnv(gym.Env):
                 net_worth_ax.legend(loc="best")
                 stock_ax.legend(loc="best")
                 amount_ax.legend(loc="best")
+
+                # Show figure
                 plt.show()
