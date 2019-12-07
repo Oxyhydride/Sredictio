@@ -1,9 +1,9 @@
 """
 main.py
-Version 1.1.0
+Version 1.1.1
 
 Created on 2019-12-04
-Updated on 2019-12-05
+Updated on 2019-12-07
 
 Copyright Ryan Kan 2019
 
@@ -30,19 +30,16 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
 
-parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Alphabet Inc/Google, Tesla")
+parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Google/Alphabet, Tesla")
 parser.add_argument("stock_symbol", type=str,
                     help="The stock's symbol. Also known as the ticker. E.G. AMZN, AAPL, GOOGL, TSLA")
 parser.add_argument("stock_history_file", type=str, help="The stock history file, usually saved as a .csv.")
 parser.add_argument("model_file", type=str, help="The model file, usually saved as a .zip file.")
-parser.add_argument("look_back_window", type=int, help="The look back window size. Can be found in the model name, "
-                                                       "next to `LBW`. E.G. `LBW-7` means look_back_window = 7. Note "
-                                                       "that days_to_scrape_data has to be larger than twice the "
-                                                       "look_back_window")
 
 parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
                     help="The number of days to scrape the stock and sentiment data. Note that days_to_scrape_data "
-                         "has to be larger than twice the look_back_window")
+                         "has to be larger than twice the look_back_window. If a model file is "
+                         "\"Model_LBW-7_NOI-1000\", then the look_back_window is 7 (as LBW = 7).")
 parser.add_argument("-v", "--verbose", choices=["0", "1"],
                     help="Set the verbosity of the program", default="1")
 parser.add_argument("-p", "--no_predictions", type=int,
@@ -57,8 +54,8 @@ STOCK_HISTORY_FILE = args.stock_history_file
 DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 
 MODEL_FILE = args.model_file
-LOOK_BACK_WINDOW = args.look_back_window
 NO_PREDICTIONS = int(args.no_predictions)
+LOOK_BACK_WINDOW = int(MODEL_FILE.split("_")[1][4:])  # Obtains the look back window from the model file
 
 VERBOSE = int(args.verbose)
 
@@ -68,7 +65,7 @@ assert 2 * LOOK_BACK_WINDOW < DAYS_TO_SCRAPE, "Days to scrape data has to be lar
 # OBTAINING DATA
 # Get stock data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.capitalize()} stock data...")
+    print(f"Obtaining {STOCK_NAME} stock data...")
 
 stockDataFrame = si.get_data(STOCK_SYMBOL,
                              start_date=(datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
@@ -77,7 +74,7 @@ stockDataFrame = si.get_data(STOCK_SYMBOL,
 
 # Get sentiment data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.capitalize()} sentiment data...")
+    print(f"Obtaining {STOCK_NAME} sentiment data...")
 
 sentimentDataFrame = get_sentiment(STOCK_SYMBOL, STOCK_NAME,
                                    (datetime.date.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
