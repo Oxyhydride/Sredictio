@@ -1,18 +1,18 @@
-stable-baselines==2.8.0
+numpy==1.15.4
+stable-baselines==2.8.0  # Once stable-baselines updates to TF2.0, we'll change the version of tensorflow as well.
 ta==0.4.7
 tensorflow==1.14.0
 
-gym>=0.12.5
-matplotlib>=3.0.2
-pandas>=0.23.4
 statsmodels>=0.10.2
 
-numpy<=1.15.4
-
+gym
+matplotlib
 nltk
 optuna
+pandas
 requests
 requests_html
 seaborn
+sklearn
 tqdm
 yahoo_fin
