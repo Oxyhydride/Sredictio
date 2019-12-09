@@ -1,9 +1,9 @@
 """
 main.py
-Version 1.1.0
+Version 1.1.2
 
 Created on 2019-12-04
-Updated on 2019-12-05
+Updated on 2019-12-08
 
 Copyright Ryan Kan 2019
 
@@ -30,19 +30,16 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
 
-parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Alphabet Inc/Google, Tesla")
-parser.add_argument("stock_symbol", type=str,
-                    help="The stock's symbol. Also known as the ticker. E.G. AMZN, AAPL, GOOGL, TSLA")
 parser.add_argument("stock_history_file", type=str, help="The stock history file, usually saved as a .csv.")
 parser.add_argument("model_file", type=str, help="The model file, usually saved as a .zip file.")
-parser.add_argument("look_back_window", type=int, help="The look back window size. Can be found in the model name, "
-                                                       "next to `LBW`. E.G. `LBW-7` means look_back_window = 7. Note "
-                                                       "that days_to_scrape_data has to be larger than twice the "
-                                                       "look_back_window")
+parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Google/Alphabet, Tesla")
+parser.add_argument("stock_symbol", type=str,
+                    help="The stock's symbol. Also known as the ticker. E.G. AMZN, AAPL, GOOGL, TSLA")
 
 parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
                     help="The number of days to scrape the stock and sentiment data. Note that days_to_scrape_data "
-                         "has to be larger than twice the look_back_window")
+                         "has to be larger than twice the look_back_window. If a model file is "
+                         "\"Model_LBW-7_NOI-1000\", then the look_back_window is 7 (as LBW = 7).")
 parser.add_argument("-v", "--verbose", choices=["0", "1"],
                     help="Set the verbosity of the program", default="1")
 parser.add_argument("-p", "--no_predictions", type=int,
@@ -57,18 +54,20 @@ STOCK_HISTORY_FILE = args.stock_history_file
 DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 
 MODEL_FILE = args.model_file
-LOOK_BACK_WINDOW = args.look_back_window
 NO_PREDICTIONS = int(args.no_predictions)
 
 VERBOSE = int(args.verbose)
 
-# CHECKS
-assert 2 * LOOK_BACK_WINDOW < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
-
 # OBTAINING DATA
+# Get Look Back Window
+look_back_window = int(MODEL_FILE.split("_")[1][4:])  # Obtains the look back window from the model file
+
+# Check if look back window is sufficient
+assert 2 * look_back_window < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
+
 # Get stock data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.capitalize()} stock data...")
+    print(f"Obtaining {STOCK_NAME} stock data...")
 
 stockDataFrame = si.get_data(STOCK_SYMBOL,
                              start_date=(datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
@@ -77,7 +76,7 @@ stockDataFrame = si.get_data(STOCK_SYMBOL,
 
 # Get sentiment data
 if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME.capitalize()} sentiment data...")
+    print(f"Obtaining {STOCK_NAME} sentiment data...")
 
 sentimentDataFrame = get_sentiment(STOCK_SYMBOL, STOCK_NAME,
                                    (datetime.date.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
@@ -94,7 +93,7 @@ if VERBOSE == 1:
 
 # PREPROCESSING
 # 1. Stock (OHLC) data
-stockData = np.array([[-2] * 4] * LOOK_BACK_WINDOW, dtype=np.float64)  # OHLC values, using -2 as a placeholder
+stockData = np.array([[-2] * 4] * look_back_window, dtype=np.float64)  # OHLC values, using -2 as a placeholder
 stockDataIndex = 0  # The index for the stockData array
 dataframeIndex = 0  # The index for the dataframe
 
@@ -119,7 +118,7 @@ while True:
             sarimaxValues[i] = list(forecast)
 
         # Fill in SARIMAX values
-        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, LOOK_BACK_WINDOW)):
+        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, look_back_window)):
             for j in range(4):  # 4 Columns
                 stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
 
@@ -137,7 +136,7 @@ while True:
         stockDataIndex = list(stockData.tolist()).index([-2, -2, -2, -2])
 
 # 2. Sentiment data
-sentimentData = [-2] * LOOK_BACK_WINDOW  # -2 cannot appear, therefore use it
+sentimentData = [-2] * look_back_window  # -2 cannot appear, therefore use it
 
 sentimentDataIndex = 0  # The index for the sentimentData array
 dataframeIndex = 0  # The index for the dataframe
@@ -152,7 +151,7 @@ while True:
             days=sentimentDataIndex) - datetime.datetime.strptime(dataframeDate, "%Y-%m-%d")).days
 
         # Fill in next (daysDifference + 1) days with the current entry's sentiment data
-        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, LOOK_BACK_WINDOW)):
+        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, look_back_window)):
             sentimentData[i] = sentimentDataFrame["Sentiment"][dataframeIndex]
 
     else:  # If not, fill in current day's sentiment
@@ -179,7 +178,7 @@ for entry in stockHist[::-1]:
         relevantHist.append(entry)
 
 # Check if relevantHist is sufficient
-ownedData = [0] * LOOK_BACK_WINDOW
+ownedData = [0] * look_back_window
 
 ownedHistIndex = 0  # The index for the ownedData array
 dataIndex = 0  # The index for the np.array
@@ -196,7 +195,7 @@ try:
                 days=ownedHistIndex) - datetime.datetime.strptime(dataDate, "%Y-%m-%d")).days
 
             # Fill in next (daysDifference + 1) days with the current entry's data
-            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, LOOK_BACK_WINDOW)):
+            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, look_back_window)):
                 ownedData[i] = relevantHist[dataIndex][1]
 
         else:
@@ -229,7 +228,7 @@ for entry in stockData:
     maxVal = max(maxVal, max(entry[0], max(entry[1], max(entry[2], entry[3]))))
 
 # Normalise the stock data
-for i in range(LOOK_BACK_WINDOW):
+for i in range(look_back_window):
     for j in range(4):
         stockData[i][j] = normalise(stockData[i][j], minVal, maxVal, min_normalised_value=1, max_normalised_value=10)
 
@@ -239,7 +238,7 @@ DISCLAIMER:
 I'm not sure how to implement Net Worth history and Cash-In-Hand history yet, so they'll all be 0's.
 """
 observation = np.array([ownedData, stockData[:, 0], stockData[:, 1], stockData[:, 2], stockData[:, 3], sentimentData,
-                        np.array([0] * LOOK_BACK_WINDOW), np.array([0] * LOOK_BACK_WINDOW)])
+                        np.array([0] * look_back_window), np.array([0] * look_back_window)])
 
 if VERBOSE:
     print("Generated observation array.")

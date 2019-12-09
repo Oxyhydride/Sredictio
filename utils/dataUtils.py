@@ -1,6 +1,6 @@
 """
 dataUtils.py
-Version 1.4.4
+Version 1.4.5
 
 Created on 2019-05-21
 Updated on 2019-12-03
@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from pandas import read_csv
 
-from .miscUtils import normalise, moving_average
+from utils.miscUtils import normalise, moving_average
 
 
 # FUNCTIONS
