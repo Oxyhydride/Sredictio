@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  Build for Ubuntu:
+  Build-for-Ubuntu:
     name: Run Sredictio On Ubuntu
     runs-on: ubuntu-latest
 
@@ -30,7 +30,7 @@ jobs:
       run: |
         python3 main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Boeing" BA
 
-  Build for macOS:
+  Build-for-macOS:
     name: Run Sredictio On MacOS
     runs-on: macOS-latest
 
@@ -51,7 +51,7 @@ jobs:
       run: |
         python3 main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Facebook" FB
 
-  Build for Windows:
+  Build-for-Windows:
     name: Run Sredictio On Windows
     runs-on: windows-latest
 
