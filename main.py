@@ -1,9 +1,9 @@
 """
 main.py
-Version 1.1.2
+Version 1.2.0
 
 Created on 2019-12-04
-Updated on 2019-12-08
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 
@@ -13,19 +13,21 @@ Description: The main file. Used to predict actions to take.
 # IMPORTS
 import argparse
 import datetime
+from time import sleep
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn import preprocessing
 from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from yahoo_fin import stock_info as si
 
-from utils.miscUtils import normalise
+from utils.dataUtils import add_technical_indicators
 from utils.sentimentUtils import get_sentiment
 
 # SETUP
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
 
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
@@ -40,10 +42,10 @@ parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
                     help="The number of days to scrape the stock and sentiment data. Note that days_to_scrape_data "
                          "has to be larger than twice the look_back_window. If a model file is "
                          "\"Model_LBW-7_NOI-1000\", then the look_back_window is 7 (as LBW = 7).")
-parser.add_argument("-v", "--verbose", choices=["0", "1"],
-                    help="Set the verbosity of the program", default="1")
 parser.add_argument("-p", "--no_predictions", type=int,
                     help="Number of predictions to run when choosing the action to take", default=1000)
+parser.add_argument("-r", "--retry_count", type=int,
+                    help="Number of attempts to get data from Yahoo Finance if it fails", default=10)
 
 args = parser.parse_args()
 
@@ -56,7 +58,7 @@ DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 MODEL_FILE = args.model_file
 NO_PREDICTIONS = int(args.no_predictions)
 
-VERBOSE = int(args.verbose)
+RETRY_COUNT = args.retry_count
 
 # OBTAINING DATA
 # Get Look Back Window
@@ -66,48 +68,63 @@ look_back_window = int(MODEL_FILE.split("_")[1][4:])  # Obtains the look back wi
 assert 2 * look_back_window < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
 
 # Get stock data
-if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME} stock data...")
+print(f"Obtaining {STOCK_NAME} stock data...")
 
-stockDataFrame = si.get_data(STOCK_SYMBOL,
-                             start_date=(datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
-                                 "%m-%d-%Y"),
-                             end_date=datetime.datetime.today().strftime("%m-%d-%Y"))  # Gets the historical data
+currRetryCount = 0
+while True:
+    try:
+        stockDataFrame = si.get_data(STOCK_SYMBOL, start_date=(
+                datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime("%Y-%m-%d"),
+                                     end_date=datetime.datetime.today().strftime(
+                                         "%Y-%m-%d"))  # Attempts to get the historical data of the stock
+
+        print("Success!")
+        break
+
+    except ValueError:
+        currRetryCount += 1
+
+        if currRetryCount > RETRY_COUNT:
+            raise AssertionError("Failed to obtain data from yahoo finance. Try again later.")
+
+        else:
+            print(f"Failed to obtain data. Trying again. (Attempt {currRetryCount} of {RETRY_COUNT})")
+            sleep(1)  # Wait for 1 second before retrying
+
+stockDataFrame = stockDataFrame.drop(stockDataFrame.columns[4], axis=1)  # Remove adjclose
 
 # Get sentiment data
-if VERBOSE == 1:
-    print(f"Obtaining {STOCK_NAME} sentiment data...")
+print(f"Obtaining {STOCK_NAME} sentiment data...")
 
 sentimentDataFrame = get_sentiment(STOCK_SYMBOL, STOCK_NAME,
                                    (datetime.date.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
                                        "%Y-%m-%d"), verbose=False, to_csv=False)
 
 # Get owned stock history
-if VERBOSE == 1:
-    print(f"Obtaining owned stock history...")
+print(f"Obtaining owned stock history...")
 
 stockHist = pd.read_csv(STOCK_HISTORY_FILE).to_numpy()
 
-if VERBOSE == 1:
-    print("Done!")
+print("Done!")
 
 # PREPROCESSING
-# 1. Stock (OHLC) data
-stockData = np.array([[-2] * 4] * look_back_window, dtype=np.float64)  # OHLC values, using -2 as a placeholder
+# 1. Stock (OHLCV) data
+stockData = np.array([[-2] * 5] * look_back_window, dtype=np.float64)  # OHLC values, using -2 as a placeholder
 stockDataIndex = 0  # The index for the stockData array
 dataframeIndex = 0  # The index for the dataframe
 
 while True:
     # Find out what the current entry of the stock data is
     dataframeDate = stockDataFrame.index[-(dataframeIndex + 1)]  # This is the current date
+
     # If not current date, then find out how many days before it is
     if dataframeDate != datetime.date.today() - datetime.timedelta(days=stockDataIndex):
         daysDifference = (datetime.date.today() - datetime.timedelta(days=stockDataIndex) - dataframeDate).days
 
         # Get SARIMAX values
-        sarimaxValues = [[-2] * daysDifference] * 4
+        sarimaxValues = [[-2] * daysDifference] * 5
 
-        for i in range(4):  # First 4 columns
+        for i in range(5):  # First 5 columns
             currDataSeries = stockDataFrame.iloc[:, i]
             forecastModel = SARIMAX(np.array(currDataSeries), enforce_stationarity=False)  # Only want OHLC values
             modelFit = forecastModel.fit(method='bfgs', disp=False)
@@ -119,21 +136,21 @@ while True:
 
         # Fill in SARIMAX values
         for i in range(stockDataIndex, min(stockDataIndex + daysDifference, look_back_window)):
-            for j in range(4):  # 4 Columns
+            for j in range(5):  # 5 Columns
                 stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
 
         stockDataIndex += daysDifference
 
     else:
         # Fill in entry with current day's OHLC data
-        stockData[stockDataIndex] = list(stockDataFrame.iloc[-(dataframeIndex + 1)])[:4]  # OHLC values only
+        stockData[stockDataIndex] = list(stockDataFrame.iloc[-(dataframeIndex + 1)])[:5]  # OHLC values only
         dataframeIndex += 1  # Simply increment this by 1
 
     # Check if there are any entries left
-    if [-2, -2, -2, -2] not in list(stockData.tolist()):
+    if [-2, -2, -2, -2, -2] not in list(stockData.tolist()):
         break
     else:
-        stockDataIndex = list(stockData.tolist()).index([-2, -2, -2, -2])
+        stockDataIndex = list(stockData.tolist()).index([-2, -2, -2, -2, -2])
 
 # 2. Sentiment data
 sentimentData = [-2] * look_back_window  # -2 cannot appear, therefore use it
@@ -219,29 +236,24 @@ stockData = stockData[::-1]
 sentimentData = np.array(sentimentData[::-1])
 ownedData = np.array(ownedData[::-1])
 
-# Find min and max from stocks
-minVal = float("inf")
-maxVal = -float("inf")
+# Convert to dataframe
+dataframe = pd.DataFrame({"Open": stockData[:, 0], "High": stockData[:, 1], "Low": stockData[:, 2],
+                          "Close": stockData[:, 3], "Volume": stockData[:, 4], "Sentiment": sentimentData})
 
-for entry in stockData:
-    minVal = min(minVal, min(entry[0], min(entry[1], min(entry[2], entry[3]))))
-    maxVal = max(maxVal, max(entry[0], max(entry[1], max(entry[2], entry[3]))))
+# Add technical indicators
+dataframe = add_technical_indicators(dataframe)
 
-# Normalise the stock data
-for i in range(look_back_window):
-    for j in range(4):
-        stockData[i][j] = normalise(stockData[i][j], minVal, maxVal, min_normalised_value=1, max_normalised_value=10)
+# Add owned stocks to dataframe
+dataframe["Owned Stocks"] = ownedData
 
-# Put all three data together
-"""
-DISCLAIMER:
-I'm not sure how to implement Net Worth history and Cash-In-Hand history yet, so they'll all be 0's.
-"""
-observation = np.array([ownedData, stockData[:, 0], stockData[:, 1], stockData[:, 2], stockData[:, 3], sentimentData,
-                        np.array([0] * look_back_window), np.array([0] * look_back_window)])
+# Convert to np.ndarray
+observation = dataframe.transpose().values
 
-if VERBOSE:
-    print("Generated observation array.")
+# Scale the observation array
+minMaxScaler = preprocessing.MinMaxScaler()
+observationScaled = minMaxScaler.fit_transform(observation.astype("float32"))
+
+print("Generated the observation array.")
 
 # MODEL PREDICTION
 # Load A2C model
@@ -252,37 +264,37 @@ suggestedActionsCount = {"Sell": 0, "Hold": 0, "Buy": 0}  # Tally the number of 
 suggestedAmounts = {"Sell": [], "Hold": [], "Buy": []}  # Tally the amount for each action type
 
 for _ in range(NO_PREDICTIONS):
-    action, _ = model.predict([observation])
+    action, _ = model.predict([observationScaled])
     suggestedAction = action[0]
 
     if suggestedAction[0] == 0:  # Sell
         suggestedActionsCount["Sell"] += 1
-        suggestedAmounts["Sell"].append(suggestedAction[1])
+        suggestedAmounts["Sell"].append(suggestedAction[1] + 1)
 
     elif suggestedAction[0] == 1:  # Hold
         suggestedActionsCount["Hold"] += 1
-        suggestedAmounts["Hold"].append(suggestedAction[1])
+        suggestedAmounts["Hold"].append(suggestedAction[1] + 1)
 
     else:  # Buy
         suggestedActionsCount["Buy"] += 1
-        suggestedAmounts["Buy"].append(suggestedAction[1])
+        suggestedAmounts["Buy"].append(suggestedAction[1] + 1)
 
 # Find most probable action
 highestCount = max(list(suggestedActionsCount.values()))
 bestAction = list(suggestedActionsCount.keys())[list(suggestedActionsCount.values()).index(highestCount)]
 
 # Get amount
-possibleAmounts = suggestedAmounts[bestAction]
+possibleAmounts = sorted(suggestedAmounts[bestAction])
 bestAmount = max(set(possibleAmounts), key=possibleAmounts.count)
 
 # Output action & amount
 print()
-print(f"Current stock price is at {observation[4][-1]}.")
-if bestAction == "Sell":
-    print(f"Sell {bestAmount}/10 of owned stocks (if possible).")
-
-elif (bestAction == "Hold") or (bestAmount == 0):
+print(f"The current stock price is at ${observation[3][-1]:.2f}")
+if bestAction == "Hold":
     print("Hold the stocks.")
+
+elif bestAction == "Sell":
+    print(f"Sell {bestAmount + 1}/10 of owned stocks (if possible).")
 
 else:  # Buy
     print(f"Buy stocks using {bestAmount}/10 of total balance (if possible).")

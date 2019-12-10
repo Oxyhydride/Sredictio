@@ -1,9 +1,9 @@
 """
 train.py
-Version 1.1.4
+Version 1.1.5
 
 Created on 2019-11-30
-Updated on 2019-12-05
+Updated on 2019-12-09
 
 Copyright Ryan Kan 2019
 
@@ -31,7 +31,8 @@ parser.add_argument("testing_stock", type=str, help="Which stock file should be 
 parser.add_argument("study_file", type=str, help="Where are the parameters stored?")
 
 parser.add_argument("-o", "--output_file_prefix", type=str, help="Prefix of the output file", default="Model")
-parser.add_argument("-i", "--init_invest", type=float, help="Initial investment amount", default=25.0)
+parser.add_argument("-i", "--init_buyable_stocks", type=float, help="Initial number of stocks that can be bought.",
+                    default=2.5)
 parser.add_argument("-n", "--no_iterations", type=int, default=50000,
                     help="Number of iterations to train the A2C agent")
 parser.add_argument("-a", "--no_entries_taking_avg", type=int, help="Number of entries to consider when taking average",
@@ -51,7 +52,7 @@ TRAINING_STOCK = args.training_stock
 TESTING_STOCK = args.testing_stock
 OUTPUT_FILE_PREFIX = args.output_file_prefix
 
-INIT_INVEST = args.init_invest
+INIT_BUYABLE_STOCKS = args.init_buyable_stocks
 
 NO_ITERATIONS = args.no_iterations
 NO_ENTRIES_TAKING_AVG = args.no_entries_taking_avg
@@ -73,16 +74,18 @@ trainingDF = dataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking
 # PREPROCESSING
 # Prepare baseline scores on training data
 train_baselines = baselineUtils.Baselines(trainingDF, render=(RENDER == 2))
-train_baseline_scores = train_baselines.run_policies()
+train_baselines.run_policies()
 
 # Obtain best study's parameters
+print("\nLoading Optuna study parameters...")
 study = optuna.load_study(study_name="A2C", storage=f"sqlite:///{OPTUNA_STUDY_FILE}")
 params = study.best_trial.params
+print("Done!\n")
 
 # MODEL TRAINING
 # Define a environment for the agent to train on
-agentEnv = TradingEnv(trainingDF, init_invest=INIT_INVEST, max_trading_session=MAX_TRADING_SESSION, is_serial=False,
-                      seed=SEED, look_back_window_size=LOOK_BACK_WINDOW)
+agentEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, max_trading_session=MAX_TRADING_SESSION,
+                      is_serial=False, look_back_window_size=LOOK_BACK_WINDOW)
 trainEnv = DummyVecEnv([lambda: agentEnv])
 
 # Create an A2C agent
@@ -93,11 +96,11 @@ model.learn(total_timesteps=NO_ITERATIONS, seed=SEED)
 
 # MODEL EVALUATION
 # How well did our model perform on the training data?
-a2cEnv = TradingEnv(trainingDF, init_invest=INIT_INVEST, is_serial=True, seed=SEED,
+a2cEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_serial=True,
                     look_back_window_size=LOOK_BACK_WINDOW)
 done = False
 
-train_state = a2cEnv.reset()
+train_state = a2cEnv.reset(print_init_invest_amount=True)
 
 while not done:
     action, _ = model.predict([train_state])
@@ -110,11 +113,8 @@ while not done:
 a2cScore = a2cEnv.get_val()  # The model's score
 
 # Output results
-print("-" * 50 + " TRAINING RESULTS " + "-" * 50)
-print("A2C Score: {:.3f}".format(a2cScore))
-print("A2C - BHODL = {:.3f}".format(a2cScore - train_baseline_scores[0]))
-print("A2C - RSI Divergence = {:.3f}".format(a2cScore - train_baseline_scores[1]))
-print("A2C - SMA Crossover = {:.3f}".format(a2cScore - train_baseline_scores[2]))
+print("-" * 50, "TRAINING RESULTS", "-" * 50)
+print(f"A2C got ${a2cScore:.2f} ({a2cScore / a2cEnv.init_invest * 100 - 100:.3f}% Increase)")
 print()
 
 # MODEL TESTING
@@ -123,14 +123,14 @@ testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_a
 
 # Generate baseline scores
 test_baselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))
-test_baseline_scores = test_baselines.run_policies()
+test_baselines.run_policies()
 
 # Run the A2C agent on the testing data
-a2cEnv = TradingEnv(testingDF, init_invest=INIT_INVEST, is_serial=True,
+a2cEnv = TradingEnv(testingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_serial=True,
                     look_back_window_size=LOOK_BACK_WINDOW)  # For testing purposes
 done = False
 
-test_state = a2cEnv.reset()
+test_state = a2cEnv.reset(print_init_invest_amount=True)
 
 while not done:
     action, _ = model.predict([test_state])
@@ -143,11 +143,8 @@ while not done:
 a2cScore = a2cEnv.get_val()  # The model's score
 
 # Output results
-print("-" * 50 + " TESTING RESULTS " + "-" * 50)
-print("A2C Score: {:.3f}".format(a2cScore))
-print("A2C - BHODL = {:.3f}".format(a2cScore - test_baseline_scores[0]))
-print("A2C - RSI Divergence = {:.3f}".format(a2cScore - test_baseline_scores[1]))
-print("A2C - SMA Crossover = {:.3f}".format(a2cScore - test_baseline_scores[2]))
+print("-" * 50, "TESTING RESULTS", "-" * 50)
+print(f"A2C got ${a2cScore:.2f} ({a2cScore / a2cEnv.init_invest * 100 - 100:.3f}% Increase)")
 print()
 
 # SAVE THE MODEL

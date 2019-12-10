@@ -1,9 +1,9 @@
 """
 optimise.py
-Version 1.0.5
+Version 1.0.6
 
 Created on 2019-11-30
-Updated on 2019-12-06
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 
@@ -68,39 +68,39 @@ def optimise_agent(trial):
     # Prepare environments
     if VERBOSE:
         print("Preparing the environments...")
-    
+
     train_env = TradingEnv(trainingDF)
     test_env = TradingEnv(testingDF)
 
     # Obtain model params
     if VERBOSE:
         print("Obtained the model params:")
-    
+
     model_params = optimise_a2c(trial)
-    
+
     if VERBOSE:
         print(model_params)
 
     # Prepare model
     if VERBOSE:
         print("Preparing the model...")
-    
+
     model = A2C(MlpLstmPolicy, DummyVecEnv([lambda: train_env]), verbose=0, **model_params)
 
     # Train model
     if VERBOSE:
         print("Training model...")
-    
-    model.learn(len(train_env.data_arr))
+
+    model.learn(len(train_env.data_df))
 
     # Evaluate performance
     if VERBOSE:
         print("Calculating the performance of the model...")
-    
+
     total_inc, done = 0, False
     obs = test_env.reset()
 
-    for i in range(len(test_env.data_arr)):
+    for i in range(len(test_env.data_df)):
         action, _ = model.predict([obs])
         obs, reward, done, _ = test_env.step(action[0])
 
@@ -112,7 +112,7 @@ def optimise_agent(trial):
     # Return performance
     if VERBOSE:
         print("Returning the performance...")
-    
+
     return -float(total_inc)
 
 
@@ -142,6 +142,6 @@ def optimise():
     return study.trials_dataframe()
 
 
-# CODE
+# DEBUG CODE
 if __name__ == "__main__":
     optimise()

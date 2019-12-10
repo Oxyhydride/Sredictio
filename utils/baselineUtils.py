@@ -1,9 +1,9 @@
 """
 baselineUtils.py
-Version 1.2.1
+Version 1.3.0
 
 Created on 2019-10-29
-Updated on 2019-11-30
+Updated on 2019-12-09
 
 Copyright Ryan Kan 2019
 
@@ -19,20 +19,21 @@ from env.TradingEnv import TradingEnv
 
 # BASELINES CLASS
 class Baselines:
-    def __init__(self, dataframe: pd.DataFrame, render: bool = True, init_invest: float = 25.0):
+    def __init__(self, dataframe: pd.DataFrame, render: bool = True, init_buyable_stocks: float = 2.5):
         """
         Baselines class. Contains the 3 baselines' policies.
 
         Keyword argument:
         - dataframe, pd.DataFrame: The dataframe containing all the data needed to train our model
         - render, bool: To render the environment or not (Default = True)
-        - init_invest, float: The initial amount for investing (Default = 25.0)
+        - init_buyable_stocks, float: The number of stocks which the agent can buy on the first step. (Default = 2.5)
         """
         self.dataframe = dataframe  # Our dataframe
         self.render = render  # Can render?
-        self.init_invest = init_invest  # Initial investment amount
+        self.init_buyable_stocks = init_buyable_stocks  # Initial investment amount
 
-        self.env = TradingEnv(self.dataframe, init_invest=self.init_invest, is_serial=True)
+        self.env = TradingEnv(self.dataframe, init_buyable_stocks=self.init_buyable_stocks, is_serial=True)
+        self.env.reset(print_init_invest_amount=True)
 
     def run_policies(self):
         """
@@ -54,12 +55,12 @@ class Baselines:
             period.
             """
             # Buy if possible
-            if self.env.cash_in_hand // self.env.open_history[self.env.cur_step] >= 1:
-                return [2, 10]  # Buy maximal amount
+            if self.env.cash_in_hand // self.env.full_data_df["Open"][self.env.cur_step] >= 1:
+                return 2, 10  # Buy maximal amount
 
             # If not, hold for all other cases
             else:
-                return [1, 10]  # Amount doesn't matter
+                return 1, 10  # Amount doesn't matter
 
         def rsi_policy():
             """
@@ -68,7 +69,7 @@ class Baselines:
             closing price consecutively drops as the RSI consecutively rises.
             """
             period = 5
-            prices = pd.DataFrame(self.env.close_history)[0]
+            prices = self.env.full_data_df["Close"]
             cur_step = self.env.cur_step
 
             rsi = ta.rsi(prices)
@@ -78,11 +79,11 @@ class Baselines:
                 price_sum = sum(prices[cur_step - period:cur_step + 1].diff().cumsum().fillna(0))
 
                 if rsi_sum < 0 <= price_sum:
-                    return [0, 10]
+                    return 0, 10
                 elif rsi_sum > 0 >= price_sum:
-                    return [2, 10]
+                    return 2, 10
 
-            return [1, 10]
+            return 1, 10
 
         def sma_policy():
             """
@@ -90,32 +91,36 @@ class Baselines:
             signaled. A positive trend reversal (aka buy) is signaled when the shorter-term SMA crosses above the
             longer-term SMA.
             """
-            prices = pd.DataFrame(self.env.close_history)[0]
+            prices = self.env.full_data_df["Close"]
             cur_step = self.env.cur_step
 
             macd = ta.macd(prices)
 
             if macd[cur_step] > 0 >= macd[cur_step - 1]:
-                return [0, 10]
+                return 0, 10
 
             elif macd[cur_step] < 0 <= macd[cur_step - 1]:
-                return [2, 10]
+                return 2, 10
 
-            return [1, 10]
+            return 1, 10
 
+        # Run baselines
         policy_order = [bhodl_policy, rsi_policy, sma_policy]
         policy_names = ["BHODL", "RSI Divergence", "SMA Crossover"]
-        policy_scores = []
+
+        init_val = self.env.init_invest
 
         for i, policy in enumerate(policy_order):
             if self.render is not True:
                 running_list = tqdm(range(self.env.start_index, self.env.end_index),
-                                    desc="Running {} baseline".format(policy_names[i]))
+                                    desc=f"Running {policy_names[i]} baseline")
             else:
                 running_list = range(self.env.start_index, self.env.end_index)
 
             # Reset environment
             self.env.reset()
+
+            # Run policies
             for _ in running_list:
                 action = policy()
 
@@ -125,7 +130,16 @@ class Baselines:
                     self.env.render()
 
             score = self.env.get_val()
-            policy_scores.append(score)
-            print("Score for {} baseline: {:.3f}".format(policy_names[i], score))
+            print(f"{policy_names[i]} baseline got ${score:.2f} ({(score / init_val) * 100 - 100:.3f}% increase)")
 
-        return policy_scores
+
+# DEBUG CODE
+if __name__ == "__main__":
+    from utils.dataUtils import prep_data
+
+    # Prepare data
+    debugDF = prep_data("../trainingData/", "AMZN")
+
+    # Run baselines
+    baselines = Baselines(debugDF, render=False)
+    baselines.run_policies()
