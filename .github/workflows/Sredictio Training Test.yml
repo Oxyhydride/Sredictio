@@ -11,13 +11,7 @@
 
 name: Sredictio Training Test
 
-on:
-  pull_request:
-    branches: 
-      - master
-  push:
-    branches: 
-      - master
+on: [pull_request, push]
 
 jobs:
   Build-for-Ubuntu:
