@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from utils.miscUtils import natural_sort
+from lib.utils.miscUtils import natural_sort
 
 
 # FUNCTIONS

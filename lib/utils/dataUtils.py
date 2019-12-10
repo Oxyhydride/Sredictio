@@ -16,7 +16,7 @@ import pandas as pd
 import ta
 from pandas import read_csv
 
-from utils.miscUtils import moving_average
+from lib.utils.miscUtils import moving_average
 
 
 # FUNCTIONS

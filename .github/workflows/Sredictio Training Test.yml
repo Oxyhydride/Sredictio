@@ -21,14 +21,14 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
     - name: Download NLTK VADER Lexicon
       run: |
-        python3 -c "import nltk; nltk.download('vader_lexicon')"
+        python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python3 train.py ./trainingData/ FB S63.SI hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" FB S63.SI Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
 
   Build-for-macOS:
     name: Run Sredictio On MacOS
@@ -42,14 +42,14 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
     - name: Download NLTK VADER Lexicon
       run: |
-        python3 -c "import nltk; nltk.download('vader_lexicon')"
+        python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python3 train.py ./trainingData/ FB BA hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" FB BA Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
 
   Build-for-Windows:
     name: Run Sredictio On Windows
@@ -70,4 +70,4 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python train.py ./trainingData/ BA FB hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" BA FB Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0

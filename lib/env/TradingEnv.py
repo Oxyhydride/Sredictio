@@ -15,8 +15,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 
-from utils.dataUtils import add_technical_indicators
-from utils.graphUtils import setup_graph
+from lib.utils.dataUtils import add_technical_indicators
+from lib.utils.graphUtils import setup_graph
 
 
 # CLASSES
@@ -416,7 +416,7 @@ class TradingEnv(gym.Env):
 
 # DEBUGGING CODE
 if __name__ == "__main__":
-    from utils.dataUtils import prep_data
+    from lib.utils.dataUtils import prep_data
 
     # Prepare dataframe
     debugDF = prep_data("../trainingData/", "BA")  # Prepare boeing data

@@ -13,7 +13,7 @@ import pandas as pd
 import ta
 from tqdm import tqdm
 
-from env.TradingEnv import TradingEnv
+from lib.env.TradingEnv import TradingEnv
 
 
 # BASELINES CLASS
@@ -134,7 +134,7 @@ class Baselines:
 
 # DEBUG CODE
 if __name__ == "__main__":
-    from utils.dataUtils import prep_data
+    from lib.utils.dataUtils import prep_data
 
     # Prepare data
     debugDF = prep_data("../trainingData/", "AMZN")

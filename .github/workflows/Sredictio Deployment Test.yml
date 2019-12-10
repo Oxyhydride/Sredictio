@@ -21,14 +21,14 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
     - name: Download NLTK VADER Lexicon
       run: |
-        python3 -c "import nltk; nltk.download('vader_lexicon')"
+        python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python3 main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Boeing" BA
+        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
 
   Build-for-macOS:
     name: Run Sredictio On MacOS
@@ -42,14 +42,14 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
     - name: Download NLTK VADER Lexicon
       run: |
-        python3 -c "import nltk; nltk.download('vader_lexicon')"
+        python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python3 main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Facebook" FB
+        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
 
   Build-for-Windows:
     name: Run Sredictio On Windows
@@ -70,5 +70,5 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Google" GOOGL
+        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
 

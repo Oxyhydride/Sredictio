@@ -1,5 +1,5 @@
 """
-train.py
+Train.py
 
 Created on 2019-11-30
 Updated on 2019-12-10
@@ -13,13 +13,14 @@ Description: A file which helps train the agent and generate the model file.
 import argparse
 
 import optuna
+import numpy as np
 from stable_baselines import A2C
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from env.TradingEnv import TradingEnv
-from utils import baselineUtils, dataUtils, graphUtils
+from lib.env.TradingEnv import TradingEnv
+from lib.utils import baselineUtils, dataUtils, graphUtils
 
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A file which helps train the agent and generate the model file.")

@@ -1,5 +1,5 @@
 """
-main.py
+Main.py
 
 Created on 2019-12-04
 Updated on 2019-12-10
@@ -22,8 +22,8 @@ from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from yahoo_fin import stock_info as si
 
-from utils.dataUtils import add_technical_indicators
-from utils.sentimentUtils import get_sentiment
+from lib.utils.dataUtils import add_technical_indicators
+from lib.utils.sentimentUtils import get_sentiment
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
