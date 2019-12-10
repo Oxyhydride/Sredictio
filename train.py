@@ -43,6 +43,8 @@ parser.add_argument("-l", "--look_back_window", type=int, default=5,
 parser.add_argument("-s", "--set_seed", type=int, help="Set the seed of the program", default=None)
 parser.add_argument("-r", "--render_type", choices=["0", "1", "2"], default="0",
                     help="What should the program render? 0 = None, 1 = Only A2C Renders, 2 = All renders")
+parser.add_argument("-t", "--use_tensorboard", choices=["0", "1"], default="1",
+                    help="Should the program use tensorboard? 0 = No, 1 = Yes")
 
 args = parser.parse_args()
 
@@ -62,6 +64,7 @@ OPTUNA_STUDY_FILE = args.study_file
 SEED = args.set_seed
 
 RENDER = int(args.render_type)
+USE_TENSORBOARD = (args.use_tensorboard == "1")
 
 # SETUP
 graphUtils.setup_graph()
@@ -88,7 +91,11 @@ agentEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, max_t
 trainEnv = DummyVecEnv([lambda: agentEnv])
 
 # Create an A2C agent
-model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C", **params)
+if USE_TENSORBOARD:
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C", **params)
+
+else:
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, **params)
 
 # Train the model!
 model.learn(total_timesteps=NO_ITERATIONS, seed=SEED)
