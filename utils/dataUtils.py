@@ -1,6 +1,5 @@
 """
 dataUtils.py
-Version 1.5.1
 
 Created on 2019-05-21
 Updated on 2019-12-10

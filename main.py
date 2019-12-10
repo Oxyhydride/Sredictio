@@ -1,6 +1,5 @@
 """
 main.py
-Version 1.2.1
 
 Created on 2019-12-04
 Updated on 2019-12-10

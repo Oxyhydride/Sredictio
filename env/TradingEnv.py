@@ -1,6 +1,5 @@
 """
 TradingEnv.py
-Version 1.19.0
 
 Created on 2019-06-03
 Updated on 2019-12-10

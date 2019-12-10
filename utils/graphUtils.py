@@ -1,9 +1,8 @@
 """
 graphUtils.py
-Version 1.4.2
 
 Created on 2019-09-08
-Updated on 2019-12-03
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 

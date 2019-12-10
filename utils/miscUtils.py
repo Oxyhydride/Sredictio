@@ -1,6 +1,5 @@
 """
 miscUtils.py
-Version 1.0.1
 
 Created on 2019-12-04
 Updated on 2019-12-10

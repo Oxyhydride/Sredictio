@@ -1,6 +1,5 @@
 """
 baselineUtils.py
-Version 1.3.0
 
 Created on 2019-10-29
 Updated on 2019-12-09

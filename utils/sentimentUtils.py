@@ -1,9 +1,8 @@
 """
 sentimentUtils.py
-Version 3.1.1
 
 Created on 2019-04-29
-Updated on 2019-12-06
+Updated on 2019-12-10
 
 Copyright Ryan Kan
 
@@ -131,7 +130,18 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
         return sentiment_dataframe
 
 
+# DEBUGGING CODE
 if __name__ == "__main__":
-    # Debugging
-    sentimentDF = get_sentiment("FB", "Facebook", "2019-11-20", to_csv=False)
-    print(sentimentDF)
+    # Query user
+    stockSymbol = input("Please enter the stock symbol: ")
+    stockName = input("Please enter the stock name: ")
+    endDate = input("Please enter the ending date in the form YYYY-MM-DD: ")
+    outputAsFile = input("Should the output be a .csv file? [Y]es or [N]o: ") == ("Y" or "Yes")
+
+    # Put it all together
+    sentimentDF = get_sentiment(stockSymbol, stockName, endDate, to_csv=outputAsFile)
+
+    if not outputAsFile:
+        print(sentimentDF)
+    else:
+        print("Done!")

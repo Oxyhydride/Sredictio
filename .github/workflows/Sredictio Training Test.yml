@@ -1,0 +1,73 @@
+name: Sredictio Training Test
+
+on:
+  pull_request:
+    branches: 
+      - master
+  push:
+    branches: 
+      - master
+
+jobs:
+  Build-for-Ubuntu:
+    name: Run Sredictio On Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements.txt
+    - name: Download NLTK VADER Lexicon
+      run: |
+        python3 -c "import nltk; nltk.download('vader_lexicon')"
+    - name: Run Sredictio Traning Program
+      run: |
+        python3 train.py ./trainingData/ FB S63.SI hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
+
+  Build-for-macOS:
+    name: Run Sredictio On MacOS
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements.txt
+    - name: Download NLTK VADER Lexicon
+      run: |
+        python3 -c "import nltk; nltk.download('vader_lexicon')"
+    - name: Run Sredictio Traning Program
+      run: |
+        python3 train.py ./trainingData/ FB BA hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
+
+  Build-for-Windows:
+    name: Run Sredictio On Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Download NLTK VADER Lexicon
+      run: |
+        python -c "import nltk; nltk.download('vader_lexicon')"
+    - name: Run Sredictio Traning Program
+      run: |
+        python3 train.py ./trainingData/ BA FB hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
