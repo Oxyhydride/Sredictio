@@ -1,9 +1,9 @@
 """
 miscUtils.py
-Version 1.0.0
+Version 1.0.1
 
 Created on 2019-12-04
-Updated on 2019-12-04
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 
@@ -21,6 +21,7 @@ def natural_sort(array):
     Keyword arguments:
     - array: List of strings.
     """
+
     def __convert__(text):
         if text.isdigit():
             return int(text)

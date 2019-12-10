@@ -1,9 +1,9 @@
 """
 dataUtils.py
-Version 1.5.0
+Version 1.5.1
 
 Created on 2019-05-21
-Updated on 2019-12-09
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 
@@ -211,7 +211,7 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
     return df
 
 
-def add_indicators(df):
+def add_technical_indicators(df):
     """
     A function to add the indicators to the dataframe.
 
@@ -272,7 +272,9 @@ def add_indicators(df):
     df["DR"] = ta.daily_return(df["Close"])
     df["DLR"] = ta.daily_log_return(df["Close"])
 
-    df.fillna(method="bfill", inplace=True)
+    # Fill in nan values
+    df.fillna(method="bfill", inplace=True)  # First try bfill
+    df.fillna(value=0, inplace=True)  # Then replace the rest of the NANs with 0s
 
     return df
 
@@ -283,6 +285,6 @@ if __name__ == "__main__":
     origDF = prep_data("../trainingData/", "FB")
     print(origDF)
 
-    modifiedDF = add_indicators(origDF)
+    modifiedDF = add_technical_indicators(origDF)
 
     print(modifiedDF)

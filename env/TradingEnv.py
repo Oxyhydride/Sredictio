@@ -1,9 +1,9 @@
 """
 TradingEnv.py
-Version 1.18.1
+Version 1.19.0
 
 Created on 2019-06-03
-Updated on 2019-12-06
+Updated on 2019-12-10
 
 Copyright Ryan Kan 2019
 
@@ -14,7 +14,9 @@ import gym
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn import preprocessing
 
+from utils.dataUtils import add_technical_indicators
 from utils.graphUtils import setup_graph
 
 
@@ -23,8 +25,7 @@ class TradingEnv(gym.Env):
     """
     The trading environment.
 
-    Observation State: [# of stock owned, open history, high history, low history, close history,
-                        sentiment history, cash in hand history, net worth history]
+    Observation State: A 44 * look_back_window array of technical indicators and values
 
     Action Space:
     - 3 Actions: Sell [0], Hold [1], Buy [2]
@@ -33,54 +34,46 @@ class TradingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'system', 'none']}
     viewer = None
 
-    def __init__(self, data_df: pd.DataFrame, init_invest: float = 25.0, reward_len: int = 32,
-                 look_back_window_size: int = 5, is_serial: bool = False, max_trading_session: int = 100,
-                 seed: int = None):
+    def __init__(self, data_df: pd.DataFrame, init_buyable_stocks: float = 2.5, reward_len: int = 32,
+                 look_back_window_size: int = 5, is_serial: bool = False, max_trading_session: int = 100):
         """
         Initialization function for the trading environment.
 
         Keyword arguments:
         - data_df, pd.DataFrame: A pandas dataframe containing all the data.
-        - init_invest, float: Starting cash (Default = 25.0)
+        - init_buyable_stocks, float: The number of stocks which the agent can buy on its first step (Default = 2.5)
         - reward_len, int: No of entries to consider when calculating reward (Default = 32)
         - look_back_window_size, int: How many entries can the agent look back? (Default = 5)
         - is_serial, bool: Is the environment serial (i.e. following a strict sequence)? (Default = False)
         - max_trading_session, int: How many entries, maximally, can the environment take as data? (Default = 100)
-        - seed, int: The seed for the environment. (Default = None)
         """
+        # Checks
+        assert init_buyable_stocks > 1, "init_buyable_stocks has to be greater than 1."
+
         # Convert given data into variables
-        self.data_df = data_df  # This is the dataframe where all the data is stored
-        self.init_invest = init_invest  # Initial investment value
+        self.full_data_df = data_df  # This is the dataframe where all the data is stored
+        self.init_buyable_stocks = init_buyable_stocks  # Initial number of stocks which the agent can buy
         self.reward_len = reward_len  # Length of reward consideration array
         self.look_back_window = look_back_window_size  # Size of the look_back window
         self.is_serial = is_serial  # Is the environment serial?
         self.max_trading_session = max_trading_session  # The maximum length for a trading session
-        self.env_seed = seed  # The random seed
 
-        # Seed environment
-        self.seed(seed=self.env_seed)
+        # Add technical indicators to self.full_data_df
+        self.full_data_df = add_technical_indicators(self.full_data_df)
 
-        # Create the histories
-        self.full_data_arr = self.data_df.values  # All the values, converted into a np.array
-
-        self.open_history = [x[0] for x in self.full_data_arr]  # All the `Open` values for the stock
-        self.high_history = [x[1] for x in self.full_data_arr]  # All the `High` values for the stock
-        self.low_history = [x[2] for x in self.full_data_arr]  # All the `Low` values for the stock
-        self.close_history = [x[3] for x in self.full_data_arr]  # All the `Close` values for the stock
-        self.sentiment_history = [x[4] for x in self.full_data_arr]  # This is the normalised sentiment data
-
-        # Create data_arr
-        self.total_len = len(self.data_df)
+        # Create data_df
+        self.total_len = len(self.full_data_df)
         self.cur_len = None
 
         self.start_index = None
         self.end_index = None
 
-        self.data_arr = None
-        self.generate_data_arr(is_serial)
+        self.data_df = None
+        self.generate_data_df(self.is_serial)
 
         # Instance attributes
         self.cur_step = self.start_index
+        self.init_invest = self.init_buyable_stocks * self.data_df["Close"].iloc[0]  # First element of the dataframe
         self.stock_owned = None
         self.cash_in_hand = None
         self.done = False
@@ -90,19 +83,14 @@ class TradingEnv(gym.Env):
         # Observation space variables
         self.net_worths = None
         self.stock_owned_history = None
-        self.cash_in_hand_history = None
 
         # Action space
         self.action_space = gym.spaces.MultiDiscrete([3, 10])
 
-        # Observation space: give estimates in order to sample and build scalar
-        stock_max = max(max(self.open_history),
-                        max(max(self.high_history), 
-                            max(max(self.low_history), 
-                                max(self.close_history))))
-
-        self.observation_space = gym.spaces.Box(low=-1, high=init_invest * 3 * (1 + (1 // stock_max)),
-                                                shape=(8, self.look_back_window), dtype=np.float32)
+        # Observation space
+        self.observation_space = gym.spaces.Box(low=0, high=1,
+                                                shape=(len(self.full_data_df.columns) + 1, self.look_back_window),
+                                                dtype=np.float32)
 
         # Rendering variables
         self.fig = None
@@ -116,18 +104,9 @@ class TradingEnv(gym.Env):
         # Reset env and start
         self.reset()
 
-    def seed(self, seed: int = None):
+    def generate_data_df(self, serial: bool):
         """
-        Seeds the environment.
-
-        Keyword arguments:
-        - seed, int: Seed of the environment. (Default = None)
-        """
-        np.random.seed(seed)
-
-    def generate_data_arr(self, serial: bool):
-        """
-        Generates the new data_arr.
+        Generates the new data_df.
 
         Keyword arguments:
         - serial, bool: Is the environment serial (i.e. following a strict sequence)?
@@ -144,31 +123,34 @@ class TradingEnv(gym.Env):
             # Generate a random range for training
             local_max_trading_session = min(self.max_trading_session, self.total_len)  # We don't want it to exceed
 
-            self.cur_len = np.random.randint(self.look_back_window,
-                                             local_max_trading_session) - self.look_back_window - 1
+            self.cur_len = np.random.randint(self.look_back_window + 1,
+                                             local_max_trading_session) - self.look_back_window
             self.start_index = np.random.randint(self.look_back_window, self.total_len - self.cur_len)
             self.end_index = self.start_index + self.cur_len
 
-        self.data_arr = self.data_df.values[self.start_index: self.end_index]
+        self.data_df = self.full_data_df[self.start_index: self.end_index]
 
-    def reset(self):
+    def reset(self, print_init_invest_amount: bool = False):
         """
         Resets the environment.
+
+        Keyword Arguments:
+        - print_init_invest_amount, bool: Should this function print the initial investment amount?
         """
         # Create new active array
-        self.generate_data_arr(self.is_serial)
+        self.generate_data_df(self.is_serial)
 
         # Reset all needed variables
         self.cur_step = self.start_index  # Step reset to 0
-        self.stock_owned = 0.
+        self.stock_owned = 0
+        self.init_invest = self.init_buyable_stocks * self.data_df["Close"].iloc[0]
         self.cash_in_hand = self.init_invest
         self.actions_taken = []
         self.actions_amounts = []
-
         self.net_worths = [self.init_invest] * self.look_back_window
         self.stock_owned_history = [0] * self.look_back_window
-        self.cash_in_hand_history = [self.init_invest] * self.look_back_window
 
+        # Rendering variables
         self.fig = None
         self.net_worth_ax = None
         self.net_worth_annotation = None
@@ -180,6 +162,11 @@ class TradingEnv(gym.Env):
         # Clear figure
         plt.clf()
 
+        # Print initial investment amount
+        if print_init_invest_amount:
+            print(f"The initial investment amount is ${self.init_invest:.2f}")
+
+        # Return observation list
         return self.get_obs()
 
     def step(self, action: tuple):
@@ -222,28 +209,26 @@ class TradingEnv(gym.Env):
         self.done = (self.cur_step >= self.end_index)  # Only will be done if the current step is the ending step
 
         # Split Action type and Amount
-        action_type = action[0]
-        action_amount = action[1] / 10  # Representing 1/10, 2/10, 3/10 etc.
+        action_type = action[0]  # Sell: 0, Hold: 1, Buy: 2
+        action_amount = (action[1] + 1) / 10  # Representing 1/10, 2/10, 3/10 etc.
 
         if action_type == 0:  # Sell
             stock_sold = int(self.stock_owned * action_amount)  # We won't want partial stocks, now do we?
 
-            self.cash_in_hand += self.open_history[self.cur_step] * stock_sold
+            # Handle exchange of things
+            self.cash_in_hand += self.full_data_df["Close"][self.cur_step] * stock_sold
             self.stock_owned -= stock_sold
 
         elif action_type == 1:  # Hold
-            # Nothing to do here, move on.
+            # Nothing to do here, moving on.
             pass
 
         elif action_type == 2:  # Buy
-            stock_bought = int((self.cash_in_hand / self.open_history[
-                self.cur_step]) * action_amount)  # We won't want partial stocks, now do we?
+            stock_bought = int((self.cash_in_hand / self.full_data_df["Close"][self.cur_step]) * action_amount)
 
-            self.cash_in_hand -= self.open_history[self.cur_step] * stock_bought
+            # Handle the exchange
+            self.cash_in_hand -= self.full_data_df["Close"][self.cur_step] * stock_bought
             self.stock_owned += stock_bought
-
-        # Append new cash in hand to cash_in_hand_history
-        self.cash_in_hand_history.append(self.cash_in_hand)
 
         # Append new stock quantity to stock_owned_history
         self.stock_owned_history.append(self.stock_owned)
@@ -252,8 +237,9 @@ class TradingEnv(gym.Env):
         self.actions_taken.append(action[0])
 
         # Append action amount to actions_amounts
-        self.actions_amounts.append(action[1] / 10 if action[0] == 2 else (
-            -action[1] / 10 if action[0] == 0 else 0))  # Negative values = Selling
+        # NOTE: Negative values = Sell
+        self.actions_amounts.append(
+            (action[1] + 1) / 10 if action[0] == 2 else (-(action[1] + 1) / 10 if action[0] == 0 else 0))
 
     def get_val(self):
         """
@@ -262,7 +248,7 @@ class TradingEnv(gym.Env):
         Returns:
         - Portfolio value (Float)
         """
-        return self.stock_owned * self.close_history[self.cur_step] + self.cash_in_hand
+        return self.stock_owned * self.full_data_df["Close"][self.cur_step] + self.cash_in_hand
 
     def gen_reward(self):
         """
@@ -278,24 +264,26 @@ class TradingEnv(gym.Env):
 
     def get_obs(self):
         """
-        Gets the observation list.
-
-        The observation list is defined as follows:
-        [# of stock owned, open history, high history, low history, close history, sentiment history,
-         cash in hand history, net worth history]
+        Processes and returns the observation list.
 
         Returns:
         - Observation list (List)
         """
+        # Add dataframe values
+        obs = self.full_data_df[self.cur_step - self.look_back_window: self.cur_step].transpose().values.tolist()
 
-        return np.array([self.stock_owned_history[-self.look_back_window:],
-                         self.open_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.high_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.low_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.close_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.sentiment_history[self.cur_step - self.look_back_window: self.cur_step],
-                         self.cash_in_hand_history[-self.look_back_window:],
-                         self.net_worths[-self.look_back_window:]])
+        # Add the stock_owned_history to the observation list
+        obs.append(self.stock_owned_history[-self.look_back_window:])
+
+        # Convert obs to np.ndarray
+        obs = np.array(obs)
+
+        # Normalise values
+        min_max_scaler = preprocessing.MinMaxScaler()
+        obs = min_max_scaler.fit_transform(obs.astype("float32"))
+
+        # Return observation list
+        return obs
 
     def render(self, mode: str = "human"):
         """
@@ -336,7 +324,7 @@ class TradingEnv(gym.Env):
 
             # Update data of the stock line
             self.stock_line.set_xdata(range(self.start_index, self.cur_step))
-            self.stock_line.set_ydata(self.close_history[self.start_index:self.cur_step])
+            self.stock_line.set_ydata(self.full_data_df["Close"][self.start_index:self.cur_step])
 
             # Annotate the current net worth of the agent
             self.net_worth_annotation.set_text("{0:.2f}".format(self.net_worths[-1]))
@@ -344,9 +332,9 @@ class TradingEnv(gym.Env):
             self.net_worth_annotation.set_y(self.net_worths[-1])
 
             # Annotate the current stock price
-            self.stock_annotation.set_text("{0:.2f}".format(self.close_history[self.cur_step]))
+            self.stock_annotation.set_text("{0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
             self.stock_annotation.set_x(self.cur_step)
-            self.stock_annotation.set_y(self.close_history[self.cur_step])
+            self.stock_annotation.set_y(self.full_data_df["Close"][self.cur_step])
 
             # Adjust the scale of the axes
             line_min_networth = min(self.net_worths)
@@ -355,8 +343,8 @@ class TradingEnv(gym.Env):
             self.net_worth_ax.set_ylim(
                 [line_min_networth - adjustment_networth, line_max_networth + adjustment_networth])
 
-            line_min_stock = min(self.close_history[self.start_index:self.cur_step])
-            line_max_stock = max(self.close_history[self.start_index:self.cur_step])
+            line_min_stock = min(self.full_data_df["Close"][self.start_index:self.cur_step])
+            line_max_stock = max(self.full_data_df["Close"][self.start_index:self.cur_step])
             adjustment_stock = line_max_stock * 0.1
             self.stock_ax.set_ylim([line_min_stock - adjustment_stock, line_max_stock + adjustment_stock])
 
@@ -373,7 +361,7 @@ class TradingEnv(gym.Env):
 
                 # Update axes titles
                 net_worth_ax.title.set_text("Net Worth: {0:.2f}".format(self.net_worths[-1]))
-                stock_ax.title.set_text("Stock Price: {0:.2f}".format(self.close_history[self.cur_step]))
+                stock_ax.title.set_text("Stock Price: {0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
                 amount_ax.title.set_text("Amount Bought/Sold (-1 to 1)")
 
                 # Set the scales
@@ -388,7 +376,8 @@ class TradingEnv(gym.Env):
                 net_worth_ax.plot(range(self.start_index, self.end_index), self.net_worths[:self.cur_len], color="b",
                                   label="Net Worth")
                 stock_ax.plot(range(self.start_index, self.end_index),
-                              self.close_history[self.start_index: self.end_index], color="r", label="Closing Price")
+                              self.full_data_df["Close"][self.start_index: self.end_index], color="r",
+                              label="Closing Price")
 
                 # Process actions taken
                 sell_only = [1 if x == 0 else 0 for x in self.actions_taken]
@@ -406,10 +395,10 @@ class TradingEnv(gym.Env):
                                      color="green", marker="x")
 
                 stock_ax.scatter(range(self.start_index, self.end_index),
-                                 [sell_only[i - self.start_index] * self.close_history[i] for i in
+                                 [sell_only[i - self.start_index] * self.full_data_df["Close"][i] for i in
                                   range(self.start_index, self.end_index)], label="Sell", color="red", marker="x")
                 stock_ax.scatter(range(self.start_index, self.end_index),
-                                 [buy_only[i - self.start_index] * self.close_history[i] for i in
+                                 [buy_only[i - self.start_index] * self.full_data_df["Close"][i] for i in
                                   range(self.start_index, self.end_index)], label="Buy", color="green", marker="x")
 
                 amount_ax.stem(range(self.start_index, self.end_index), sell_actions, "red", markerfmt="ro",
@@ -424,3 +413,26 @@ class TradingEnv(gym.Env):
 
                 # Show figure
                 plt.show()
+
+
+# DEBUGGING CODE
+if __name__ == "__main__":
+    from utils.dataUtils import prep_data
+
+    # Prepare dataframe
+    debugDF = prep_data("../trainingData/", "BA")  # Prepare boeing data
+
+    # Prepare environment
+    debugEnv = TradingEnv(debugDF, is_serial=True)
+
+    # Reset environment
+    debugEnv.reset()
+
+    # Increment step
+    debugEnv.step((2, 1))  # Buy with 1/10
+
+    # Print data_df
+    print(debugEnv.data_df)
+
+    # Get observation list
+    print(debugEnv.get_obs())
