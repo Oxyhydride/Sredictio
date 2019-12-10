@@ -28,5 +28,5 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Facebook" FB
+        python main.py stockHistory.csv Model_LBW-20_NOI-100000.zip "Google" GOOGL
 

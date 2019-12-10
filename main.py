@@ -147,10 +147,14 @@ while True:
         dataframeIndex += 1  # Simply increment this by 1
 
     # Check if there are any entries left
-    if [-2, -2, -2, -2, -2] not in list(stockData.tolist()):
+    if [-2, -2, -2, -2, -2] not in stockData.tolist():
         break
     else:
-        stockDataIndex = list(stockData.tolist()).index([-2, -2, -2, -2, -2])
+        convertedList = stockData.tolist()
+
+        assert isinstance(convertedList, list), type(convertedList)  # Check if list
+        
+        stockDataIndex = convertedList.index([-2, -2, -2, -2, -2])
 
 # 2. Sentiment data
 sentimentData = [-2] * look_back_window  # -2 cannot appear, therefore use it
