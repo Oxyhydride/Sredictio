@@ -1,0 +1,76 @@
+Sredictio Changelog
+From 2019-12-10 Onwards
+NOTE: The logs are arranged in reverse order. This means that the latest update is listed on top, and the earliest update is listed on the bottom.
+
+Update 1575993696
+- Added a `Changelog.txt` to document all updates to files from 2019-12-10 onwards.
+- Removed `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` for being ineffective for picking out issues in code.
+
+Update 1575992499
+The Actions of `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` now will run on every branch, and not just on the "master" branch. This change will allow us to see if the code is working *before* the final pull request is made to the "master" branch.
+
+Update 1575992183
+- Added documentation to `miscUtils.py` functions so that their usage is more explicit.
+- Made `Sredictio Training Test.yml` work more efficiently.
+- Removed the reliance on one model file, and use a model directory instead. Updates to `Main.py`, `Train.py` and `Sredictio Deployment Test.yml` reflect this change.
+- The model file has been moved into the `Models` directory, with a new prefix of `LATEST=`.
+- Made `Sredictio Deployment Test.yml` less likely to fail when obtaining Yahoo Finance data.
+- Updated `__init__.py` in the `lib` directory.
+- Updated `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` to include copyright information and GitHub Actions information.
+- Fixed weird spacing on the top of `Stock History.csv`.
+- The version number has been removed from `README.md`.
+
+Update 1575987306
+- Reorganised Sredictio files & folders
+- Renamed multiple files
+- Updated `requirements.txt` to use numpy 1.16.5 instead of numpy 1.17.4 (as numpy 1.17.4 was giving warnings)
+- Updated `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml`
+
+Update 1575978274
+- Updated the `Sredictio Training Test.yml` action file
+- Updated `train.py`
+
+Update 1575977119
+- Fixed model
+- Updated the `Sredictio Training Test.yml` action file
+
+Update 1575976648
+- Removed versioning from all files
+- Prepared files for release 0.1.0
+
+Update 1575955776
+Updated `Sredictio Deployment Test.yml`
+
+Update 1575955702
+- Combined workflows into one file
+- Prettified `main.py`
+
+Update 1575955274
+- Updated workflows (again)
+- Updated `requirements.txt` to use numpy-1.17.4
+- Updated `main.py` to reflect the new numpy version
+
+Update 1575953879
+Updated workflows
+
+Update 1575951026
+- Updated `TradingEnv.py` to include 38 other technical analysis features in the observation space
+- Updated `TradingEnv.py` to use a `pd.DataFrame` instead of a `np.ndarray`
+- Updated `train.py` to use the new observation state
+- Updated `main.py` to use the new observation state
+- Updated `optimise.py` to use the new observation state
+- Updated the model to use the new observation state
+- Updated `baselineUtils.py` to use the updated `TradingEnv.py` environment
+- Updated formulae in `Sredictio Field Tests.xlsx`
+- Restarted the field tests
+- Added new field test results to `stockHistory.csv`
+- Renamed `add_indicators` to `add_technical_indicators` in `dataUtils.py`
+- Prettified `miscUtils.py`
+
+
+
+
+
+
+
+
