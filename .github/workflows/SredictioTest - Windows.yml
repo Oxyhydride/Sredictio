@@ -1,4 +1,4 @@
-name: Sredictio Deployment Test
+name: Sredictio Deployment Test (Windows)
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: Run Sredictio On Windows
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@master
