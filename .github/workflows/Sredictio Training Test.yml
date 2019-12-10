@@ -1,3 +1,14 @@
+# Sredictio Training Test.yml
+#
+# Created on 2019-12-10
+# Updated on 2019-12-10
+#
+# Copyright Ryan Kan 2019
+# Made with GitHub's Actions. To find out more, you can check out the following link:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-github-actions
+#
+# Description: A file which tests Sredictio's training capability on other systems.
+
 name: Sredictio Training Test
 
 on:
@@ -28,7 +39,7 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python Train.py "./Training Data/" FB S63.SI Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" S63.SI AMZN Hyperparams.db -n 5 -l 1 -r 0 -o STT -t 0
 
   Build-for-macOS:
     name: Run Sredictio On MacOS
@@ -49,7 +60,7 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python Train.py "./Training Data/" FB BA Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" FB BA Hyperparams.db -n 5 -l 1 -r 0 -o STT -t 0
 
   Build-for-Windows:
     name: Run Sredictio On Windows
@@ -70,4 +81,4 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python Train.py "./Training Data/" BA FB Hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest -t 0
+        python Train.py "./Training Data/" BA FB Hyperparams.db -n 5 -l 1 -r 0 -o STT -t 0

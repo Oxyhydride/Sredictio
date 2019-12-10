@@ -12,6 +12,7 @@ Description: The main file. Used to predict actions to take.
 # IMPORTS
 import argparse
 import datetime
+import os
 from time import sleep
 
 import numpy as np
@@ -24,6 +25,7 @@ from yahoo_fin import stock_info as si
 
 from lib.utils.dataUtils import add_technical_indicators
 from lib.utils.sentimentUtils import get_sentiment
+from lib.utils.miscUtils import natural_sort
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
@@ -32,7 +34,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly te
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
 
 parser.add_argument("stock_history_file", type=str, help="The stock history file, usually saved as a .csv.")
-parser.add_argument("model_file", type=str, help="The model file, usually saved as a .zip file.")
+parser.add_argument("model_dir", type=str, help="The model directory, which contains all the model files.")
 parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Google/Alphabet, Tesla")
 parser.add_argument("stock_symbol", type=str,
                     help="The stock's symbol. Also known as the ticker. E.G. AMZN, AAPL, GOOGL, TSLA")
@@ -54,17 +56,31 @@ STOCK_HISTORY_FILE = args.stock_history_file
 
 DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 
-MODEL_FILE = args.model_file
+MODEL_DIRECTORY = args.model_dir if args.model_dir[-1] == "/" else args.model_dir + "/"
 NO_PREDICTIONS = int(args.no_predictions)
 
 RETRY_COUNT = args.retry_count
 
 # OBTAINING DATA
+# List all files in MODEL_DIRECTORY
+allModelFiles = natural_sort(os.listdir(MODEL_DIRECTORY))
+
+# Get latest model
+modelFile = "NO_FILE_FOUND!"
+for fileName in allModelFiles:
+    if fileName[:7] == "LATEST=":
+        modelFile = fileName
+        break
+
+# Check if the latest model was found
+assert modelFile != "NO_FILE_FOUND!", "A model with the prefix 'LATEST=' was not found. Please append that prefix to " \
+                                      "the latest model file. "
+
 # Get Look Back Window
-look_back_window = int(MODEL_FILE.split("_")[1][4:])  # Obtains the look back window from the model file
+lookBackWindow = int(modelFile.split("_")[1][4:])  # Obtains the look back window from the model file
 
 # Check if look back window is sufficient
-assert 2 * look_back_window < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
+assert 2 * lookBackWindow < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
 
 # Get stock data
 print(f"Obtaining {STOCK_NAME} stock data...")
@@ -87,7 +103,7 @@ while True:
             raise AssertionError("Failed to obtain data from yahoo finance. Try again later.")
 
         else:
-            print(f"Failed to obtain data. Trying again. (Attempt {currRetryCount} of {RETRY_COUNT})")
+            print(f"Failed to obtain stock data. Trying again in 1s. (Attempt {currRetryCount} of {RETRY_COUNT})")
             sleep(1)  # Wait for 1 second before retrying
 
 stockDataFrame = stockDataFrame.drop(stockDataFrame.columns[4], axis=1)  # Remove adjclose
@@ -108,7 +124,7 @@ print("Done!")
 
 # PREPROCESSING
 # 1. Stock (OHLCV) data
-stockData = np.array([[-2] * 5] * look_back_window, dtype=np.float64)  # OHLC values, using -2 as a placeholder
+stockData = np.array([[-2] * 5] * lookBackWindow, dtype=np.float64)  # OHLC values, using -2 as a placeholder
 stockDataIndex = 0  # The index for the stockData array
 dataframeIndex = 0  # The index for the dataframe
 
@@ -134,7 +150,7 @@ while True:
             sarimaxValues[i] = list(forecast)
 
         # Fill in SARIMAX values
-        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, look_back_window)):
+        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, lookBackWindow)):
             for j in range(5):  # 5 Columns
                 stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
 
@@ -156,7 +172,7 @@ while True:
         stockDataIndex = convertedList.index([-2, -2, -2, -2, -2])
 
 # 2. Sentiment data
-sentimentData = [-2] * look_back_window  # -2 cannot appear, therefore use it
+sentimentData = [-2] * lookBackWindow  # -2 cannot appear, therefore use it
 
 sentimentDataIndex = 0  # The index for the sentimentData array
 dataframeIndex = 0  # The index for the dataframe
@@ -171,7 +187,7 @@ while True:
             days=sentimentDataIndex) - datetime.datetime.strptime(dataframeDate, "%Y-%m-%d")).days
 
         # Fill in next (daysDifference + 1) days with the current entry's sentiment data
-        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, look_back_window)):
+        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, lookBackWindow)):
             sentimentData[i] = sentimentDataFrame["Sentiment"][dataframeIndex]
 
     else:  # If not, fill in current day's sentiment
@@ -198,7 +214,7 @@ for entry in stockHist[::-1]:
         relevantHist.append(entry)
 
 # Check if relevantHist is sufficient
-ownedData = [0] * look_back_window
+ownedData = [0] * lookBackWindow
 
 ownedHistIndex = 0  # The index for the ownedData array
 dataIndex = 0  # The index for the np.array
@@ -215,7 +231,7 @@ try:
                 days=ownedHistIndex) - datetime.datetime.strptime(dataDate, "%Y-%m-%d")).days
 
             # Fill in next (daysDifference + 1) days with the current entry's data
-            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, look_back_window)):
+            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, lookBackWindow)):
                 ownedData[i] = relevantHist[dataIndex][1]
 
         else:
@@ -260,7 +276,7 @@ print("Generated the observation array.")
 
 # MODEL PREDICTION
 # Load A2C model
-model = A2C.load(MODEL_FILE)
+model = A2C.load(MODEL_DIRECTORY + modelFile)
 
 # Generate possible actions
 suggestedActionsCount = {"Sell": 0, "Hold": 0, "Buy": 0}  # Tally the number of times the model suggests each action

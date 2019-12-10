@@ -1,8 +1,6 @@
 ![SredictioImage](https://user-images.githubusercontent.com/25820201/69715400-246fa900-1143-11ea-91e1-7f9107c652a0.jpg)
 A stock trading bot using sentiment analysis and reinforcement learning.
 
-The current version of this program is **0.1.0**.
-
 ## What is this?
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in buying/selling stocks.
 

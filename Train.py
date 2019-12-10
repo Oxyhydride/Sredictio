@@ -11,16 +11,17 @@ Description: A file which helps train the agent and generate the model file.
 
 # IMPORTS
 import argparse
+import os
 
 import optuna
-import numpy as np
 from stable_baselines import A2C
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from lib.env.TradingEnv import TradingEnv
 from lib.utils import baselineUtils, dataUtils, graphUtils
+from lib.env.TradingEnv import TradingEnv
+from lib.utils.miscUtils import create_path, natural_sort
 
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A file which helps train the agent and generate the model file.")
@@ -30,6 +31,8 @@ parser.add_argument("training_stock", type=str, help="Which stock file should be
 parser.add_argument("testing_stock", type=str, help="Which stock file should be used for testing?")
 parser.add_argument("study_file", type=str, help="Where are the parameters stored?")
 
+parser.add_argument("-d", "--model_dir", type=str, help="Which directory should the model be placed in?",
+                    default="./Models/")
 parser.add_argument("-o", "--output_file_prefix", type=str, help="Prefix of the output file", default="Model")
 parser.add_argument("-i", "--init_buyable_stocks", type=float, help="Initial number of stocks that can be bought.",
                     default=2.5)
@@ -50,6 +53,8 @@ parser.add_argument("-t", "--use_tensorboard", choices=["0", "1"], default="1",
 args = parser.parse_args()
 
 STOCK_DIRECTORY = args.stock_dir if args.stock_dir[-1] == "/" else args.stock_dir + "/"
+MODEL_DIRECTORY = args.model_dir if args.model_dir[-1] == "/" else args.model_dir + "/"
+
 TRAINING_STOCK = args.training_stock
 TESTING_STOCK = args.testing_stock
 OUTPUT_FILE_PREFIX = args.output_file_prefix
@@ -155,4 +160,23 @@ print(f"A2C got ${a2cScore:.2f} ({a2cScore / a2cEnv.init_invest * 100 - 100:.3f}
 print()
 
 # SAVE THE MODEL
-model.save(f"{OUTPUT_FILE_PREFIX}_LBW-{LOOK_BACK_WINDOW}_NOI-{NO_ITERATIONS}.zip")  # Saved as Zip-archive
+# Create directory
+create_path(MODEL_DIRECTORY)
+
+# List all files in MODEL_DIRECTORY
+allModelFiles = natural_sort(os.listdir(MODEL_DIRECTORY))
+
+# Try to get latest model
+latestModelFile = "NO_FILE_FOUND!"
+for fileName in allModelFiles:
+    if fileName[:7] == "LATEST=":
+        latestModelFile = fileName
+        break
+
+# Check if there is a latest model
+if latestModelFile != "NO_FILE_FOUND!":
+    # Remove the "LATEST=" prefix from that "latest" file
+    os.rename(MODEL_DIRECTORY + latestModelFile, MODEL_DIRECTORY + latestModelFile[7:])
+
+# Save model as the latest model
+model.save(MODEL_DIRECTORY + f"LATEST={OUTPUT_FILE_PREFIX}_LBW-{LOOK_BACK_WINDOW}_NOI-{NO_ITERATIONS}.zip")

@@ -1,3 +1,14 @@
+# Sredictio Deployment Test.yml
+#
+# Created on 2019-12-10
+# Updated on 2019-12-10
+#
+# Copyright Ryan Kan 2019
+# Made with GitHub's Actions. To find out more, you can check out the following link:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-github-actions
+#
+# Description: A file which tests Sredictio's deployment on other systems.
+
 name: Sredictio Deployment Test
 
 on:
@@ -28,7 +39,7 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
+        python Main.py "Stock History.csv" Models "Facebook" FB -r 100
 
   Build-for-macOS:
     name: Run Sredictio On MacOS
@@ -49,7 +60,7 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
+        python Main.py "Stock History.csv" Models "Facebook" FB -r 100
 
   Build-for-Windows:
     name: Run Sredictio On Windows
@@ -70,5 +81,5 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio
       run: |
-        python Main.py "Stock History.csv" Model_LBW-20_NOI-100000.zip "Boeing" BA
+        python Main.py "Stock History.csv" Models "Facebook" FB -r 100
 
