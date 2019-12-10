@@ -28,7 +28,7 @@ jobs:
         python3 -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python3 train.py ./trainingData/ FB S63.SI hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
+        python3 train.py ./trainingData/ FB S63.SI hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest
 
   Build-for-macOS:
     name: Run Sredictio On MacOS
@@ -49,7 +49,7 @@ jobs:
         python3 -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python3 train.py ./trainingData/ FB BA hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
+        python3 train.py ./trainingData/ FB BA hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest
 
   Build-for-Windows:
     name: Run Sredictio On Windows
@@ -70,4 +70,4 @@ jobs:
         python -c "import nltk; nltk.download('vader_lexicon')"
     - name: Run Sredictio Traning Program
       run: |
-        python3 train.py ./trainingData/ BA FB hyperparams.db -n 1000 -l 3 -r 0 -o TrainingTest
+        python train.py ./trainingData/ BA FB hyperparams.db -n 500 -l 3 -r 0 -o TrainingTest
