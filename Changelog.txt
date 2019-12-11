@@ -2,6 +2,10 @@ Sredictio Changelog
 From 2019-12-10 Onwards
 NOTE: The logs are arranged in reverse order. This means that the latest update is listed on top, and the earliest update is listed on the bottom.
 
+Update 1576076441
+- Updated `GUIMain.py` with more testing code.
+- Updated `Stock History.csv` with 2019-12-11 field test results.
+
 Update 1576073392
 - Updated `Main.py`, reducing the default number of retries from 10 to 5.
 - Added 2019-12-11 field test results.
