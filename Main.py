@@ -21,11 +21,11 @@ import tensorflow as tf
 from sklearn import preprocessing
 from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from yahoo_fin import stock_info as si
 
 from lib.utils.dataUtils import add_technical_indicators
 from lib.utils.sentimentUtils import get_sentiment
 from lib.utils.miscUtils import natural_sort
+from lib.utils.stockUtils import get_historical_data, process_historical_data
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
@@ -88,10 +88,11 @@ print(f"Obtaining {STOCK_NAME} stock data...")
 currRetryCount = 0
 while True:
     try:
-        stockDataFrame = si.get_data(STOCK_SYMBOL, start_date=(
-                datetime.datetime.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime("%Y-%m-%d"),
-                                     end_date=datetime.datetime.today().strftime(
-                                         "%Y-%m-%d"))  # Attempts to get the historical data of the stock
+        # First get the historical data
+        historicalData = get_historical_data(STOCK_SYMBOL, number_of_days=DAYS_TO_SCRAPE)
+
+        # Then process it as a pandas dataframe
+        stockDataFrame = process_historical_data(historicalData)
 
         print("Success!")
         break
@@ -105,8 +106,6 @@ while True:
         else:
             print(f"Failed to obtain stock data. Trying again in 1s. (Attempt {currRetryCount} of {RETRY_COUNT})")
             sleep(1)  # Wait for 1 second before retrying
-
-stockDataFrame = stockDataFrame.drop(stockDataFrame.columns[4], axis=1)  # Remove adjclose
 
 # Get sentiment data
 print(f"Obtaining {STOCK_NAME} sentiment data...")
@@ -313,7 +312,7 @@ if bestAction == "Hold":
     print("Hold the stocks.")
 
 elif bestAction == "Sell":
-    print(f"Sell {bestAmount + 1}/10 of owned stocks (if possible).")
+    print(f"Sell {bestAmount}/10 of owned stocks (if possible).")
 
 else:  # Buy
     print(f"Buy stocks using {bestAmount}/10 of total balance (if possible).")
