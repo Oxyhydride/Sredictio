@@ -5,6 +5,7 @@ stable-baselines==2.8.0  # Once stable-baselines updates to TF2.0, we'll change 
 
 statsmodels>=0.10.2
 
+beautifulsoup4
 gym
 matplotlib
 nltk
@@ -15,4 +16,3 @@ requests_html
 seaborn
 sklearn
 tqdm
-yahoo_fin

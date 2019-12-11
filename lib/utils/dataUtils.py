@@ -2,7 +2,7 @@
 dataUtils.py
 
 Created on 2019-05-21
-Updated on 2019-12-10
+Updated on 2019-12-11
 
 Copyright Ryan Kan 2019
 
@@ -20,9 +20,9 @@ from lib.utils.miscUtils import moving_average
 
 
 # FUNCTIONS
-def get_data(stock_directory: str, stock_symbol: str):
+def obtain_training_data(stock_directory: str, stock_symbol: str):
     """
-    Processes data from one subdirectory in the root directory to be parsed later for data training.
+    Processes data from the training directory for training.
 
     Keyword Arguments:
      - stock_directory, str: Directory which contains the stock values file and the sentiment scores file
@@ -181,7 +181,7 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
     """
 
     # Get the data
-    stock_data = get_data(stock_directory, stock_symbol)
+    stock_data = obtain_training_data(stock_directory, stock_symbol)
 
     # Take moving average of both the stock values and the sentiment values
     averaged = []
@@ -280,7 +280,7 @@ def add_technical_indicators(df):
 
 # DEBUG CODE
 if __name__ == "__main__":
-    print(get_data("../trainingData/", "FB"))
+    print(obtain_training_data("../trainingData/", "FB"))
     origDF = prep_data("../trainingData/", "FB")
     print(origDF)
 
