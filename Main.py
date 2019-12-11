@@ -46,7 +46,7 @@ parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
 parser.add_argument("-p", "--no_predictions", type=int,
                     help="Number of predictions to run when choosing the action to take", default=1000)
 parser.add_argument("-r", "--retry_count", type=int,
-                    help="Number of attempts to get data from Yahoo Finance if it fails", default=10)
+                    help="Number of attempts to get data from Yahoo Finance if it fails", default=5)
 
 args = parser.parse_args()
 
