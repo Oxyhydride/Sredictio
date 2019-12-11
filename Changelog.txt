@@ -2,6 +2,16 @@ Sredictio Changelog
 From 2019-12-10 Onwards
 NOTE: The logs are arranged in reverse order. This means that the latest update is listed on top, and the earliest update is listed on the bottom.
 
+Update 1576072800
+- A dumb person forget to update the `Updated on` string at the start of `Main.py`
+- Changelog was updated with the Version 0.1.2 hotfix.
+
+Update 1576072222
+- Emergency hotfix for the Yahoo Stock obtainer. The yahoo-fin library didn't work, so a hotfix was needed. The `stockUtils.py` file was created as a result.
+- `Main.py` was also updated to reflect this change.
+- `requirements.txt` now excludes the yahoo-fin library.
+- README.md no longer shows the version number.
+
 Update 1575993696
 - Added a `Changelog.txt` to document all updates to files from 2019-12-10 onwards.
 - Removed `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` for being ineffective for picking out issues in code.
