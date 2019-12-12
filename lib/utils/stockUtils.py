@@ -2,7 +2,7 @@
 stockUtils.py
 
 Created on 2019-12-11
-Updated on 2019-12-11
+Updated on 2019-12-12
 
 Copyright Ryan Kan 2019
 
@@ -13,6 +13,28 @@ from urllib import request
 from bs4 import BeautifulSoup
 
 import pandas as pd
+
+
+# FUNCTIONS
+def get_html_rows(symbol: str):
+    """
+    Gets the HTML rows data of the stock symbol.
+
+    Keyword arguments:
+    - symbol, str: The stock symbol. E.G. AMZN, TSLA, BA
+
+    Returns:
+    - The HTML rows parameter, which is needed for the function `get_historical_data`.
+    """
+    url = "https://finance.yahoo.com/quote/" + symbol + "/history/"
+
+    try:
+        rows = BeautifulSoup(request.urlopen(url).read(), features="lxml").findAll("table")[0].tbody.findAll("tr")
+
+    except IndexError:
+        raise NameError(f"Stock symbol not found! Please check the entered stock symbol. (ENTERED: '{symbol}')")
+
+    return rows
 
 
 def get_historical_data(symbol: str, number_of_days: int = 10):
@@ -29,8 +51,7 @@ def get_historical_data(symbol: str, number_of_days: int = 10):
     data = []  # Where all the stock data will be housed
 
     # Obtain HTML data
-    url = "https://finance.yahoo.com/quote/" + symbol + "/history/"
-    rows = BeautifulSoup(request.urlopen(url).read(), features="lxml").findAll("table")[0].tbody.findAll("tr")
+    rows = get_html_rows(symbol)
 
     # Process HTML data
     for row in rows:

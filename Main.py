@@ -12,8 +12,6 @@ Description: The main file. Used to predict actions to take.
 # IMPORTS
 import argparse
 import datetime
-import os
-from time import sleep
 
 import numpy as np
 import pandas as pd
@@ -22,10 +20,8 @@ from sklearn import preprocessing
 from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
+from lib.deployment.obtainData import get_model_file, get_lookback_window, get_obs_data
 from lib.utils.dataUtils import add_technical_indicators
-from lib.utils.sentimentUtils import get_sentiment
-from lib.utils.miscUtils import natural_sort
-from lib.utils.stockUtils import get_historical_data, process_historical_data
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
@@ -46,7 +42,7 @@ parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
 parser.add_argument("-p", "--no_predictions", type=int,
                     help="Number of predictions to run when choosing the action to take", default=1000)
 parser.add_argument("-r", "--retry_count", type=int,
-                    help="Number of attempts to get data from Yahoo Finance if it fails", default=5)
+                    help="Number of attempts to get data from Yahoo Finance if it fails", default=3)
 
 args = parser.parse_args()
 
@@ -62,74 +58,26 @@ NO_PREDICTIONS = int(args.no_predictions)
 RETRY_COUNT = args.retry_count
 
 # OBTAINING DATA
-# List all files in MODEL_DIRECTORY
-allModelFiles = natural_sort(os.listdir(MODEL_DIRECTORY))
+# Get the model file from the model directory
+modelFile = get_model_file(MODEL_DIRECTORY)
 
-# Get latest model
-modelFile = "NO_FILE_FOUND!"
-for fileName in allModelFiles:
-    if fileName[:7] == "LATEST=":
-        modelFile = fileName
-        break
+# Get the lookback window from the model file
+lookbackWindow = get_lookback_window(modelFile)
 
-# Check if the latest model was found
-assert modelFile != "NO_FILE_FOUND!", "A model with the prefix 'LATEST=' was not found. Please append that prefix to " \
-                                      "the latest model file. "
-
-# Get Look Back Window
-lookBackWindow = int(modelFile.split("_")[1][4:])  # Obtains the look back window from the model file
-
-# Check if look back window is sufficient
-assert 2 * lookBackWindow < DAYS_TO_SCRAPE, "Days to scrape data has to be larger than twice the look back window."
-
-# Get stock data
-print(f"Obtaining {STOCK_NAME} stock data...")
-
-currRetryCount = 0
-while True:
-    try:
-        # First get the historical data
-        historicalData = get_historical_data(STOCK_SYMBOL, number_of_days=DAYS_TO_SCRAPE)
-
-        # Then process it as a pandas dataframe
-        stockDataFrame = process_historical_data(historicalData)
-
-        print("Success!")
-        break
-
-    except ValueError:
-        currRetryCount += 1
-
-        if currRetryCount > RETRY_COUNT:
-            raise AssertionError("Failed to obtain data from yahoo finance. Try again later.")
-
-        else:
-            print(f"Failed to obtain stock data. Trying again in 1s. (Attempt {currRetryCount} of {RETRY_COUNT})")
-            sleep(1)  # Wait for 1 second before retrying
-
-# Get sentiment data
-print(f"Obtaining {STOCK_NAME} sentiment data...")
-
-sentimentDataFrame = get_sentiment(STOCK_SYMBOL, STOCK_NAME,
-                                   (datetime.date.today() - datetime.timedelta(days=DAYS_TO_SCRAPE)).strftime(
-                                       "%Y-%m-%d"), verbose=False, to_csv=False)
-
-# Get owned stock history
-print(f"Obtaining owned stock history...")
-
-stockHist = pd.read_csv(STOCK_HISTORY_FILE).to_numpy()
-
-print("Done!")
+# Get the data for the observation array
+stockDataframe, sentimentDataframe, ownedStockArr = get_obs_data(STOCK_NAME, STOCK_SYMBOL, STOCK_HISTORY_FILE,
+                                                                 lookbackWindow, days_to_scrape=DAYS_TO_SCRAPE,
+                                                                 retry_count=RETRY_COUNT)
 
 # PREPROCESSING
 # 1. Stock (OHLCV) data
-stockData = np.array([[-2] * 5] * lookBackWindow, dtype=np.float64)  # OHLC values, using -2 as a placeholder
+stockData = np.array([[-2] * 5] * lookbackWindow, dtype=np.float64)  # OHLC values, using -2 as a placeholder
 stockDataIndex = 0  # The index for the stockData array
 dataframeIndex = 0  # The index for the dataframe
 
 while True:
     # Find out what the current entry of the stock data is
-    dataframeDate = stockDataFrame.index[-(dataframeIndex + 1)]  # This is the current date
+    dataframeDate = stockDataframe.index[-(dataframeIndex + 1)]  # This is the current date
 
     # If not current date, then find out how many days before it is
     if dataframeDate != datetime.date.today() - datetime.timedelta(days=stockDataIndex):
@@ -139,7 +87,7 @@ while True:
         sarimaxValues = [[-2] * daysDifference] * 5
 
         for i in range(5):  # First 5 columns
-            currDataSeries = stockDataFrame.iloc[:, i]
+            currDataSeries = stockDataframe.iloc[:, i]
             forecastModel = SARIMAX(np.array(currDataSeries), enforce_stationarity=False)  # Only want OHLC values
             modelFit = forecastModel.fit(method='bfgs', disp=False)
             forecast = modelFit.forecast(steps=daysDifference)  # Definitely an np.array
@@ -149,7 +97,7 @@ while True:
             sarimaxValues[i] = list(forecast)
 
         # Fill in SARIMAX values
-        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, lookBackWindow)):
+        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, lookbackWindow)):
             for j in range(5):  # 5 Columns
                 stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
 
@@ -157,7 +105,7 @@ while True:
 
     else:
         # Fill in entry with current day's OHLC data
-        stockData[stockDataIndex] = list(stockDataFrame.iloc[-(dataframeIndex + 1)])[:5]  # OHLC values only
+        stockData[stockDataIndex] = list(stockDataframe.iloc[-(dataframeIndex + 1)])[:5]  # OHLC values only
         dataframeIndex += 1  # Simply increment this by 1
 
     # Check if there are any entries left
@@ -171,14 +119,14 @@ while True:
         stockDataIndex = convertedList.index([-2, -2, -2, -2, -2])
 
 # 2. Sentiment data
-sentimentData = [-2] * lookBackWindow  # -2 cannot appear, therefore use it
+sentimentData = [-2] * lookbackWindow  # -2 cannot appear, therefore use it
 
 sentimentDataIndex = 0  # The index for the sentimentData array
 dataframeIndex = 0  # The index for the dataframe
 
 while True:
     # Find out what the current entry of the sentiment data is
-    dataframeDate = sentimentDataFrame["Date"][dataframeIndex]  # This is the date obtained from the dataframe
+    dataframeDate = sentimentDataframe["Date"][dataframeIndex]  # This is the date obtained from the dataframe
 
     # If not current date, then find out how many days before it is
     if dataframeDate != (datetime.datetime.today() - datetime.timedelta(days=sentimentDataIndex)).strftime("%Y-%m-%d"):
@@ -186,11 +134,11 @@ while True:
             days=sentimentDataIndex) - datetime.datetime.strptime(dataframeDate, "%Y-%m-%d")).days
 
         # Fill in next (daysDifference + 1) days with the current entry's sentiment data
-        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, lookBackWindow)):
-            sentimentData[i] = sentimentDataFrame["Sentiment"][dataframeIndex]
+        for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, lookbackWindow)):
+            sentimentData[i] = sentimentDataframe["Sentiment"][dataframeIndex]
 
     else:  # If not, fill in current day's sentiment
-        sentimentData[sentimentDataIndex] = sentimentDataFrame["Sentiment"][dataframeIndex]
+        sentimentData[sentimentDataIndex] = sentimentDataframe["Sentiment"][dataframeIndex]
 
     # If there are still entries to fill, continue
     if -2 in sentimentData:
@@ -208,12 +156,12 @@ NOTE:
 """
 # Obtain data which is relevant
 relevantHist = []
-for entry in stockHist[::-1]:
+for entry in ownedStockArr[::-1]:
     if entry[2] == STOCK_SYMBOL:
         relevantHist.append(entry)
 
 # Check if relevantHist is sufficient
-ownedData = [0] * lookBackWindow
+ownedData = [0] * lookbackWindow
 
 ownedHistIndex = 0  # The index for the ownedData array
 dataIndex = 0  # The index for the np.array
@@ -230,7 +178,7 @@ try:
                 days=ownedHistIndex) - datetime.datetime.strptime(dataDate, "%Y-%m-%d")).days
 
             # Fill in next (daysDifference + 1) days with the current entry's data
-            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, lookBackWindow)):
+            for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, lookbackWindow)):
                 ownedData[i] = relevantHist[dataIndex][1]
 
         else:
