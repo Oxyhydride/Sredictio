@@ -2,12 +2,12 @@
 sentimentUtils.py
 
 Created on 2019-04-29
-Updated on 2019-12-10
+Updated on 2019-12-13
 
 Copyright Ryan Kan
 
 Description: A program to scrap sentiments from the Straits Times' website and generate the {NAME}_Sentiments.csv file
-             for model training.
+             or a sentiment dataframe for model training.
 """
 
 # IMPORTS
@@ -56,7 +56,16 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 
         time.sleep(0.1)  # We don't want to overload the website, right?
 
-        page_url = f"http://api.queryly.com/json.aspx?queryly_key=a7dbcffb18bb41eb&query={'%20'.join(stock_name.lower().split())}&endindex={(page_no - 1) * batch_size}&batchsize={batch_size}&timezoneoffset={time_offset}&facetedvalue={hours_to_search}&facetedkey=pubDate"
+        # Process URL
+        page_url = f"http://api.queryly.com/json.aspx?" + \
+                   f"queryly_key=a7dbcffb18bb41eb" + \
+                   f"&query={'%20'.join(stock_name.lower().split())}" + \
+                   f"&endindex={(page_no - 1) * batch_size}" + \
+                   f"&batchsize={batch_size}" + \
+                   f"&timezoneoffset={time_offset}" + \
+                   f"&facetedvalue={hours_to_search}" + \
+                   f"&facetedkey=pubDate"
+
         header = {'User-Agent': 'Mozilla/5.0'}  # Do not modify!
         request = Request(page_url, headers=header)
 
@@ -133,13 +142,14 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 # DEBUGGING CODE
 if __name__ == "__main__":
     # Query user
-    stockSymbol = input("Please enter the stock symbol: ")
     stockName = input("Please enter the stock name: ")
+    stockSymbol = input("Please enter the stock symbol: ")
     endDate = input("Please enter the ending date in the form YYYY-MM-DD: ")
     outputAsFile = input("Should the output be a .csv file? [Y]es or [N]o: ") == ("Y" or "Yes")
 
     # Put it all together
-    sentimentDF = get_sentiment(stockSymbol, stockName, endDate, to_csv=outputAsFile)
+    sentimentDF = get_sentiment(stockSymbol, stockName, endDate, output_dir="../../Training Data/" + stockSymbol + "/",
+                                to_csv=outputAsFile)
 
     if not outputAsFile:
         print(sentimentDF)
