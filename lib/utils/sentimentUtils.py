@@ -6,7 +6,7 @@ Updated on 2019-12-13
 
 Copyright Ryan Kan
 
-Description: A program to scrap sentiments from the Straits Times' website and generate the {NAME}_Sentiments.csv file
+Description: A program to scrap sentiments from the Straits Times' website and generate the {NAME}_sentiments.csv file
              or a sentiment dataframe for model training.
 """
 
@@ -23,16 +23,19 @@ from lib.utils.miscUtils import natural_sort
 
 
 # FUNCTIONS
-def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir: str = "./trainingData/",
-                  batch_size: int = 20, time_offset: int = 8, irrelevant_post_tolerance: int = 20, to_csv: bool = True,
-                  verbose: bool = True):
+def get_sentiment_data(stock_symbol: str, stock_name: str, start_date: str, end_date: str,
+                       output_dir: str = "./trainingData/", batch_size: int = 20, time_offset: int = 8,
+                       irrelevant_post_tolerance: int = 20, to_csv: bool = True, verbose: bool = True):
     """
     Generate sentiment data given stock data.
 
     Keyword arguments:
     - stock_symbol, str: Stock symbol. E.g. FB, TSLA, AMZN
     - stock_name, str: Stock name. E.g. Facebook, Tesla, Amazon
-    - end_date, str: Date to stop scraping. Must be in the form YYYY-MM-DD.
+    - start_date, str: The first date to scrape the data. Note that the start date has to be OLDER than the end date.
+                       The date has to also be in the form YYYY-MM-DD.
+    - end_date, str: The last date to scrape the data. Note that the end date has to be MORE RECENT than the start
+                     date. The end date has to also be in the form YYYY-MM-DD.
     - output_dir, str: Directory to place the .csv file. (Default = "./trainingData/")
     - batch_size, int: Batch size of the website. Must be in the range 1 <= batch_size < 100 (Default = 20)
     - time_offset, int: Timezone offset. E.g. if timezone is GMT+6 / UTC+6, time_offset will be 6. (Default = 8)
@@ -41,7 +44,7 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
     - verbose, bool: Should the program show intermediate output? (Default = True)
     """
     sia = SentimentIntensityAnalyzer()  # The VADER sentiment analyser
-    hours_to_search = (datetime.today() - datetime.strptime(end_date, "%Y-%m-%d")).days * 24
+    hours_to_search = (datetime.today() - datetime.strptime(start_date, "%Y-%m-%d")).days * 24
 
     # Search for articles and generate sentiment
     page_no = 1
@@ -52,7 +55,9 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 
     while True:
         if verbose:
-            print(f"\n{'-' * 50}\nPAGE {page_no}\n{'-' * 50}")
+            print("-" * 50)
+            print(f"PAGE {page_no}".center(50))
+            print("-" * 50)
 
         time.sleep(0.1)  # We don't want to overload the website, right?
 
@@ -91,7 +96,7 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 
                 if verbose:
                     print("\n\n" + post_date + ": " + post_title + "\n" + post_desc)
-                    print(f"\nSENTIMENTS\nTITLE: {sentiment_title:.6f} | DESCRIPTION: {sentiment_desc:.6f}")
+                    print(f"\nTITLE: {sentiment_title:.6f} | DESCRIPTION: {sentiment_desc:.6f}")
 
                 if post_date not in date_sentiments.keys():  # If an article on that date has yet to be processed
                     date_sentiments[post_date] = []  # Make a new list
@@ -106,7 +111,9 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
 
         if irrelevant_posts > irrelevant_post_tolerance:
             if verbose:
-                print(f"{'!' * 50}\nSEARCH ENDED ON PAGE {page_no}\n{'!' * 50}")
+                print("!" * 50)
+                print(f"SEARCH ENDED ON PAGE {page_no}".center(50))
+                print("!" * 50)
 
             break
 
@@ -128,10 +135,24 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
     for i, date in enumerate(dates):
         sorted_sentiments[sorted_dates.index(date)] = date_sentiment_arr[i]
 
-    # Generate sentiment csv file
+    # Generate sentiment dataframe
     sentiment_dataframe = pd.DataFrame(sorted_sentiments)
     sentiment_dataframe.columns = ["Date", "Sentiment"]  # Set the columns
 
+    # Set all values under the Date column to be datetime64[ns]
+    sentiment_dataframe["Date"] = pd.to_datetime(sentiment_dataframe["Date"])
+
+    # Convert both start_date and end_date to datetime.datetime
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date, "%Y-%m-%d")
+
+    # Make a boolean mask
+    mask = (sentiment_dataframe["Date"] >= start_date) & (sentiment_dataframe["Date"] <= end_date)
+
+    # Select all relevant rows
+    sentiment_dataframe = sentiment_dataframe.loc[mask]
+
+    # Output the compiled dataframe
     if to_csv:
         sentiment_dataframe.to_csv(output_dir + stock_symbol + "_sentiments.csv", index=False)
 
@@ -139,19 +160,22 @@ def get_sentiment(stock_symbol: str, stock_name: str, end_date: str, output_dir:
         return sentiment_dataframe
 
 
-# DEBUGGING CODE
+# DEBUG CODE
 if __name__ == "__main__":
-    # Query user
     stockName = input("Please enter the stock name: ")
     stockSymbol = input("Please enter the stock symbol: ")
-    endDate = input("Please enter the ending date in the form YYYY-MM-DD: ")
     outputAsFile = input("Should the output be a .csv file? [Y]es or [N]o: ") == ("Y" or "Yes")
 
-    # Put it all together
-    sentimentDF = get_sentiment(stockSymbol, stockName, endDate, output_dir="../../Training Data/" + stockSymbol + "/",
-                                to_csv=outputAsFile)
+    print("\nFor the ENDING date, ensure that it is MORE RECENT than the STARTING date.")
+    startDate = input("Please enter the starting date in the form YYYY-MM-DD: ")
+    endDate = input("Please enter the ending date in the form YYYY-MM-DD:   ")
+
+    # Get the sentiment dataframe
+    sentimentDF = get_sentiment_data(stockSymbol, stockName, startDate, endDate, to_csv=outputAsFile,
+                                     output_dir="../../Training Data/" + stockSymbol + "/")
 
     if not outputAsFile:
         print(sentimentDF)
+
     else:
         print("Done!")

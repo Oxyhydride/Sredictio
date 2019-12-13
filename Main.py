@@ -37,7 +37,7 @@ parser.add_argument("stock_symbol", type=str,
 
 parser.add_argument("-d", "--days_to_scrape_data", type=int, default=100,
                     help="The number of days to scrape the stock and sentiment data. Note that days_to_scrape_data "
-                         "has to be larger than twice the look_back_window. If a model file is "
+                         "has to be larger than 2.5 times the look_back_window. If a model file is "
                          "\"Model_LBW-7_NOI-1000\", then the look_back_window is 7 (as LBW = 7).")
 parser.add_argument("-p", "--no_predictions", type=int,
                     help="Number of predictions to run when choosing the action to take", default=1000)
@@ -77,7 +77,7 @@ dataframeIndex = 0  # The index for the dataframe
 
 while True:
     # Find out what the current entry of the stock data is
-    dataframeDate = stockDataframe.index[-(dataframeIndex + 1)]  # This is the current date
+    dataframeDate = stockDataframe.index[-(dataframeIndex + 1)].date()  # This is the current date
 
     # If not current date, then find out how many days before it is
     if dataframeDate != datetime.date.today() - datetime.timedelta(days=stockDataIndex):

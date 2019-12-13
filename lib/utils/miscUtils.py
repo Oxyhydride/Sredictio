@@ -2,11 +2,11 @@
 miscUtils.py
 
 Created on 2019-12-04
-Updated on 2019-12-10
+Updated on 2019-12-13
 
 Copyright Ryan Kan 2019
 
-Description: Miscellaneous functions and classes.
+Description: Miscellaneous functions.
 """
 # IMPORTS
 import os
@@ -14,12 +14,12 @@ import re
 
 
 # FUNCTIONS
-def natural_sort(array):
+def natural_sort(array: list):
     """
     Natural sort function.
 
     Keyword arguments:
-    - array: List of strings.
+    - array, list: List of strings.
 
     Returns:
     - Sorted list of strings

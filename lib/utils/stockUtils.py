@@ -6,124 +6,141 @@ Updated on 2019-12-13
 
 Copyright Ryan Kan 2019
 
-Description: The utilities required to obtain the stock data from Yahoo Finance.
+Description: The functions required to obtain the stock data from Yahoo Finance.
 """
 
 # IMPORTS
+import re
 from datetime import datetime
-from urllib import request
+from io import StringIO
+from time import sleep
 
 import pandas as pd
-from bs4 import BeautifulSoup
+import requests
+from requests.exceptions import HTTPError
 
 
 # FUNCTIONS
-def get_html_rows(symbol: str, start_date: str, end_date: str):
-    """
-    Gets the HTML rows data of the stock symbol.
-
-    Keyword arguments:
-    - symbol, str: The stock symbol. E.G. AMZN, TSLA, BA
-    - start_date, str: The start date, in the form YYYY-MM-DD
-    - end_date, str: The end date, in the form YYYY-MM-DD
-
-    Returns:
-    - The HTML rows parameter, which is needed for the function `get_historical_data`.
-    """
-    # Get dates' epoch timestamps
-    start_epoch = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
-    end_epoch = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
-
-    # Generate URL
-    url = f"https://finance.yahoo.com/quote/{symbol}/history?period1={start_epoch}&period2={end_epoch}&interval=1d" \
-          f"&frequency=1d/ "
-    print(url)
-    # Check the HTML of that web page
-    try:
-        rows = BeautifulSoup(request.urlopen(url).read(), features="lxml").findAll("table")[0].tbody.findAll("tr")
-
-        # Check if is right page
-        if rows[0].findAll("td")[1].span.text is None:  # That means that the page has no "Dividend" attribute
-            # Which means the page is wrong
-            raise IndexError
-
-    except IndexError:
-        raise NameError(f"Stock symbol not found! Please check the entered stock symbol. (ENTERED: '{symbol}')")
-
-    return rows
-
-
-def get_historical_data(symbol: str, start_date: str, end_date: str):
+def get_stock_data(stock_symbol: str, start_date: str, end_date: str, timeout: int = 3, retry_count: int = 5,
+                   retry_delay: float = 1.0, save_as_csv: bool = False, file_location: str = None,
+                   verbose: bool = True):
     """
     Obtains the historical data of a stock from Yahoo Finance.
 
     Keyword arguments:
-    - symbol, str: The stock symbol. E.G. AMZN, TSLA, BA
-    - start_date, str: The start date, in the form YYYY-MM-DD
-    - end_date, str: The end date, in the form YYYY-MM-DD
+    - stock_symbol, str: The stock symbol. E.G. AMZN, TSLA, BA
+    - start_date, str: The first date to scrape the data. Note that the start date has to be OLDER than the end date.
+                       The date has to also be in the form YYYY-MM-DD.
+    - end_date, str: The last date to scrape the data. Note that the end date has to be MORE RECENT than the start
+                     date. The end date has to also be in the form YYYY-MM-DD.
+    - timeout, int: The duration to wait for, in seconds, before the web page request will raise a timeout error.
+                    (Default = 3)
+    - retry_count, int: The number of times to attempt to get the Yahoo Finance data before failing. (Default = 5)
+    - retry_delay, float: The duration to wait, in seconds, between attempts if the attempt fails. (Default = 1.0)
+    - save_as_csv, bool: Should the pandas dataframe be saved as a .csv file? (Default = False)
+    - file_location, str: If `save_as_csv` is True, then this parameter MUST also be filled. Where should the .csv
+                          file be placed? What should the .csv file be named as? (Default = None)
+    - verbose, bool: The value to this parameter is the answer to the statement "The program outputs messages".
+                     (Default = True)
 
     Returns:
-    - The stock data for that number of days
+    - The stock data for that number of days (if `save_as_csv` is False)
     """
-    data = []  # Where all the stock data will be housed
+    curr_retry_count = 0  # Will stop trying if this ever exceeds retry_count
 
-    # Obtain HTML data
-    rows = get_html_rows(symbol, start_date, end_date)
-
-    # Process HTML data
-    for row in rows:
-        possible_stock_entry = row.findAll("td")
-
+    while True:
+        if verbose:
+            print(f"Attempting to get {stock_symbol} data from Yahoo Finance... (Attempt {curr_retry_count + 1} of " +
+                  f"{retry_count})")
         try:
-            if possible_stock_entry[1].span.text != "Dividend":  # Ignore dividend
-                # Append HTML data to the data array
-                data.append({"date": possible_stock_entry[0].span.text,  # This is in YYYY-MM-DD format
-                             "open": float(possible_stock_entry[1].span.text.replace(",", "")),
-                             "high": float(possible_stock_entry[2].span.text.replace(",", "")),
-                             "low": float(possible_stock_entry[3].span.text.replace(",", "")),
-                             "close": float(possible_stock_entry[4].span.text.replace(",", "")),
-                             "volume": int(possible_stock_entry[6].span.text.replace(",", ""))})
-        except AttributeError:
-            # This means that that day might not have any data, so skip
-            print(row)
-            pass
+            session = requests.Session()
 
-    return data
+            # Get crumb form yahoo finance
+            response = session.get(f"https://finance.yahoo.com/quote/{stock_symbol}/history?p={stock_symbol}",
+                                   timeout=timeout)
+            response.raise_for_status()
+
+            match = re.search(r'"CrumbStore":{"crumb":"(.*?)"}', response.text)
+
+            if not match:
+                raise ValueError('Could not get crumb from Yahoo Finance')
+
+            else:
+                crumb = match.group(1)
+
+            # Get dates
+            date_from = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())
+            date_to = int(datetime.strptime(end_date, "%Y-%m-%d").timestamp())
+
+            # Parse the URL
+            url = f"https://query1.finance.yahoo.com/v7/finance/download/{stock_symbol}?period1={date_from}" \
+                  f"&period2={date_to}&interval=1d&events=history&crumb={crumb} "
+
+            # Try to get a response
+            response = session.get(url)  # This is very finicky, so we might need to run this multiple times
+            response.raise_for_status()  # Check if authorised, and if we got the data
+
+            # If succeeded, then we can output the data
+            if verbose:
+                print("Success!")
+
+            break
+
+        except HTTPError:
+            if curr_retry_count < retry_count:
+                if verbose:
+                    print(f"Failed to obtain data. Trying again in {retry_delay}s.")
+
+                curr_retry_count += 1
+
+                sleep(retry_delay)
+            else:
+                raise HTTPError("Cannot get Yahoo Finance data at this time. Try again later.")
+
+    # Save the response as a dataframe
+    stock_df = pd.read_csv(StringIO(response.text), parse_dates=['Date'])
+
+    # Drop null values
+    stock_df.dropna(inplace=True)
+
+    # Set the volume column to integers
+    stock_df["Volume"] = stock_df["Volume"].astype(int)
+
+    # Output
+    if not save_as_csv:
+        return stock_df
+
+    else:
+        # Save the dataframe as a csv file
+        stock_df.to_csv(file_location, index=False)
 
 
-def process_historical_data(data: list):
+def process_stock_data(df: pd.DataFrame):
     """
     Processes the raw data to be placed in a pandas Dataframe.
 
     Keyword arguments:
-    - data, list: The data list, which will be returned by the `get_historical_data` function.
+    - data, pd.DataFrame: The dataframe which has been returned by the `get_historical_data` function.
 
     Returns:
-    - Pandas DataFrame with the processed data.
+    - The processed pandas dataframe.
     """
-    # Reformat dates into a datetime object
-    for row in data:
-        row["date"] = pd.to_datetime(row["date"]).date()
+    # Rename columns
+    df = df.rename(columns={"Date": "date",
+                            "Open": "open",
+                            "High": "high",
+                            "Low": "low",
+                            "Close": "close",
+                            "Volume": "volume"})
 
-    # Reformat into pandas dataframe
-    df = pd.DataFrame(data)
+    # Remove "Adj Close" column
+    df = df.drop(df.columns[5], axis=1)
 
-    # Set date column as index
+    # Set date as index
     df = df.set_index("date")
 
     # Return processed dataframe
     return df
-
-
-def save_stocks_as_csv(stock_df: pd.DataFrame):
-    """
-    Saves the stocks dataframe as a .csv file.
-
-    Keyword arguments:
-    - stock_df, pd.DataFrame: The stocks dataframe.
-    """
-    # Rename dataframe columns
-    print(stock_df)
 
 
 # DEBUG CODE
@@ -133,14 +150,14 @@ if __name__ == "__main__":
 
     print("\nFor the ENDING date, ensure that it is MORE RECENT than the STARTING date.")
     startDate = input("Please enter the starting date in the form YYYY-MM-DD: ")
-    endDate = input("Please enter the ending date in the form YYYY-MM-DD:  ")
+    endDate = input("Please enter the ending date in the form YYYY-MM-DD:   ")
 
-    histData = get_historical_data(stockSymbol, startDate, endDate)
-    dataframe = process_historical_data(histData)
+    stockDF = get_stock_data(stockSymbol, startDate, endDate, save_as_csv=outputAsFile,
+                             file_location="../../Training Data/" + stockSymbol + "/" + stockSymbol + "_stocks.csv")
 
     # Output generated dataframe
-    if outputAsFile:
-        save_stocks_as_csv(dataframe)
+    if not outputAsFile:
+        print(stockDF)
 
     else:
-        print(dataframe)
+        print("Done!")

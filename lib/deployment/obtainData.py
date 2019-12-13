@@ -10,15 +10,14 @@ Description: A function which obtains the data needed for the full observation l
 """
 
 # IMPORTS
-import datetime
+from datetime import datetime, timedelta, date
 import os
-from time import sleep
 
 import pandas as pd
 
 from lib.utils.miscUtils import natural_sort
-from lib.utils.sentimentUtils import get_sentiment
-from lib.utils.stockUtils import get_historical_data, process_historical_data
+from lib.utils.sentimentUtils import get_sentiment_data
+from lib.utils.stockUtils import get_stock_data, process_stock_data
 
 
 # FUNCTIONS
@@ -84,40 +83,25 @@ def get_obs_data(stock_name: str, stock_symbol: str, stock_history_file: str, lo
     - The look back window.
     """
     # Check if look back window is sufficient
-    assert 2 * lookback_window < days_to_scrape, "Days to scrape data has to be larger than twice the look back " \
-                                                 "window. "
+    assert int(2.5 * lookback_window) < days_to_scrape, "Days to scrape data has to be larger than 2.5 times the look" \
+                                                        " back window. "
 
     # Get stock data
-    print(f"Obtaining {stock_name} stock data...")
+    # First get the historical data
+    historical_data = get_stock_data(stock_symbol,
+                                     (datetime.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
+                                     datetime.today().strftime("%Y-%m-%d"),
+                                     retry_count=retry_count)
 
-    curr_retry_count = 0
-    while True:
-        try:
-            # First get the historical data
-            historical_data = get_historical_data(stock_symbol, number_of_days=days_to_scrape)
-
-            # Then process it as a pandas dataframe
-            stock_dataframe = process_historical_data(historical_data)
-
-            print("Success!")
-            break
-
-        except ValueError:
-            curr_retry_count += 1
-
-            if curr_retry_count > retry_count:
-                raise AssertionError("Failed to obtain data from yahoo finance. Try again later.")
-
-            else:
-                print(f"Failed to obtain stock data. Trying again in 1s. (Attempt {curr_retry_count} of {retry_count})")
-                sleep(1)  # Wait for 1 second before retrying
+    # Then process it as a pandas dataframe
+    stock_dataframe = process_stock_data(historical_data)
 
     # Get sentiment data
     print(f"Obtaining {stock_name} sentiment data...")
 
-    sentiment_dataframe = get_sentiment(stock_symbol, stock_name,
-                                        (datetime.date.today() - datetime.timedelta(days=days_to_scrape)).strftime(
-                                            "%Y-%m-%d"), verbose=False, to_csv=False)
+    sentiment_dataframe = get_sentiment_data(stock_symbol, stock_name,
+                                             (date.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
+                                             date.today().strftime("%Y-%m-%d"), verbose=False, to_csv=False)
 
     # Get owned stock history
     print(f"Obtaining owned stock history...")

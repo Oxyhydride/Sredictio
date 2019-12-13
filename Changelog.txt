@@ -1,10 +1,19 @@
-                                                 Sredictio Changelog
+                                                  Sredictio Changelog
 ------------------------------------------------------------------------------------------------------------------------
 NOTE: Only updates from 2019-12-10 onwards are recorded here. The rest have been omitted. The logs are also arranged in
       reverse order, where the latest update is listed on top, and the earliest update is listed on the bottom.
 
+Update 1576230918:
+- Added `Update Training Data.py` to make updating the training data easier.
+- Consequently, all training data in the `Training Data` directory have been replaced.
+- The stock `BTC` has been renamed to `BTC-USD` to fit the "correct" stock symbol.
+- The README.md in the `Training Data` directory has been updated to reflect the new changes.
+- Under `stockUtils.py`, ``get_historical_data` has been updated with a new algorithm, and has been renamed to
+  `get_stock_data` instead.
+- `Main.py` and `obtainData.py` have been updated to accommodate the changes.
+
 Update 1576220523:
-- Prepare `stockUtils.py` for an update of the Stock Data Downloading Algorithm.
+- Prepared `stockUtils.py` for an update of the Stock Data Downloading Algorithm.
 - Updated `sentimentUtils.py` to allow direct downloading of sentiment data to the `Training Data` directory.
 - `Changelog.txt` was updated to be more "pleasing to the eyes".
 

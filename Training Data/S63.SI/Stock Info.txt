@@ -1,0 +1,5 @@
+STOCK NAME:     ST-Engineering
+STOCK SYMBOL:   S63.SI
+NOTES:          (AS BELOW)
+- S63.SI may also be referred to as "Singapore Technologies Engineering". However, it is more commonly referred as "ST
+  Engineering".

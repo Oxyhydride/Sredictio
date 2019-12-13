@@ -1,0 +1,5 @@
+STOCK NAME:     Amazon
+STOCK SYMBOL:   AMZN
+NOTES:          (AS BELOW)
+- The company "Amazon" may be confused with the Amazon Rain Forest. There is no way that the program can distinguish
+  between the two. Hence, the sentiment data may be incorrect.

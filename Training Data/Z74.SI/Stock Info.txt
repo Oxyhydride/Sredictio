@@ -1,0 +1,5 @@
+STOCK NAME:     Singtel
+STOCK SYMBOL:   Z74.SI
+NOTES:          (AS BELOW)
+- The full name for Z74.SI is "Singapore Telecommunications Limited". However, almost everyone will say "Singtel"
+  instead of the full name, so the stock name will be "Singtel".
