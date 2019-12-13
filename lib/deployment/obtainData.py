@@ -2,7 +2,7 @@
 obtainData.py
 
 Created on 2019-12-12
-Updated on 2019-12-12
+Updated on 2019-12-13
 
 Copyright Ryan Kan 2019
 
@@ -64,7 +64,7 @@ def get_lookback_window(model_file_name: str):
 
 
 def get_obs_data(stock_name: str, stock_symbol: str, stock_history_file: str, lookback_window: int,
-                 days_to_scrape: int = 100, retry_count: int = 3):
+                 days_to_scrape: int = 100, retry_count: int = 5):
     """
     Gets the data needed to generate the observation array.
 

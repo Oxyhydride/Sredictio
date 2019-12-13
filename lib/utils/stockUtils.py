@@ -87,7 +87,7 @@ def get_stock_data(stock_symbol: str, start_date: str, end_date: str, timeout: i
             break
 
         except HTTPError:
-            if curr_retry_count < retry_count:
+            if curr_retry_count <= retry_count:
                 if verbose:
                     print(f"Failed to obtain data. Trying again in {retry_delay}s.")
 

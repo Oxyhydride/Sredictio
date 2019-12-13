@@ -1,7 +1,12 @@
                                                   Sredictio Changelog
 ------------------------------------------------------------------------------------------------------------------------
-NOTE: Only updates from 2019-12-10 onwards are recorded here. The rest have been omitted. The logs are also arranged in
-      reverse order, where the latest update is listed on top, and the earliest update is listed on the bottom.
+   Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
+            reverse order, where the latest update is listed on top, and the earliest update is listed last.
+
+Update 1576247888:
+- Prettified `Changelog.txt` (again)
+- Fixed incorrect logical statement in `stockUtils.py`
+- Increased retry count from 3 to 5 in `obtainData.py`
 
 Update 1576230918:
 - Added `Update Training Data.py` to make updating the training data easier.
@@ -94,7 +99,7 @@ Update 1575955274
 - Updated `main.py` to reflect the new numpy version
 
 Update 1575953879
-Updated workflows
+Updated Sredictio workflows
 
 Update 1575951026
 - Updated `TradingEnv.py` to include 38 other technical analysis features in the observation space

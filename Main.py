@@ -83,6 +83,7 @@ while True:
     if dataframeDate != datetime.date.today() - datetime.timedelta(days=stockDataIndex):
         daysDifference = (datetime.date.today() - datetime.timedelta(days=stockDataIndex) - dataframeDate).days
 
+        # TODO: REPLACE CODE BELOW WITH LINEAR FIT DATA
         # Get SARIMAX values
         sarimaxValues = [[-2] * daysDifference] * 5
 
