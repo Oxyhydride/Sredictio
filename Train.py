@@ -20,7 +20,7 @@ from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
 from lib.utils import baselineUtils, trainingDataUtils, graphUtils
-from lib.env.TradingEnv import TradingEnv
+from lib.environment.TradingEnv import TradingEnv
 from lib.utils.miscUtils import create_path, natural_sort
 
 # ARGUMENTS
@@ -175,8 +175,25 @@ for fileName in allModelFiles:
 
 # Check if there is a latest model
 if latestModelFile != "NO_FILE_FOUND!":
-    # Remove the "LATEST=" prefix from that "latest" file
-    os.rename(MODEL_DIRECTORY + latestModelFile, MODEL_DIRECTORY + latestModelFile[7:])
+    # Get all existing files
+    allExistingFiles = os.listdir(MODEL_DIRECTORY)
+
+    currRenameAttempt = 0
+    while True:
+        # Generate new name
+        if currRenameAttempt == 0:
+            proposedName = latestModelFile[7:]
+        else:
+            proposedName = latestModelFile[7:].split(".")[0] + f" ({currRenameAttempt}).zip"
+
+        if proposedName not in allExistingFiles:
+            # No conflicts! Go ahead with rename
+            os.rename(MODEL_DIRECTORY + latestModelFile, MODEL_DIRECTORY + proposedName)
+            break
+
+        else:
+            # Conflict! Increment currRenameAttempt by 1 and try again
+            currRenameAttempt += 1
 
 # Save model as the latest model
 model.save(MODEL_DIRECTORY + f"LATEST={OUTPUT_FILE_PREFIX}_LBW-{LOOK_BACK_WINDOW}_NOI-{NO_ITERATIONS}.zip")

@@ -255,13 +255,12 @@ possibleAmounts = sorted(suggestedAmounts[bestAction])
 bestAmount = max(set(possibleAmounts), key=possibleAmounts.count)
 
 # Output action & amount
-print()
-print(f"The current stock price is at ${observation[3][-1]:.2f}")
+print(f"\nThe current stock price is at ${observation[3][-1]:.2f}")
 if bestAction == "Hold":
     print("Hold the stocks.")
 
 elif bestAction == "Sell":
-    print(f"Sell {bestAmount}/10 of owned stocks (if possible).")
+    print(f"Sell {bestAmount}/5 of owned stocks (if possible).")
 
 else:  # Buy
-    print(f"Buy stocks using {bestAmount}/10 of total balance (if possible).")
+    print(f"Buy stocks using {bestAmount}/5 of total balance (if possible).")

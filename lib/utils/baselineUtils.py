@@ -2,7 +2,7 @@
 baselineUtils.py
 
 Created on 2019-10-29
-Updated on 2019-12-04
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -13,7 +13,7 @@ import pandas as pd
 import ta
 from tqdm import tqdm
 
-from lib.env.TradingEnv import TradingEnv
+from lib.environment.TradingEnv import TradingEnv
 
 
 # BASELINES CLASS

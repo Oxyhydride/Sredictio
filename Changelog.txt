@@ -3,6 +3,13 @@
    Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
             reverse order, where the latest update is listed on top, and the earliest update is listed last.
 
+Update 1576309748:
+- Improved the file renaming system in `Train.py`
+- Renamed `env` to `environment`.
+- Updated action amount quantity from x/10 to x/5.
+- Reformatted print output in `Main.py`
+- Updated latest model to accommodate the environment update and the hyperparameters update.
+
 Update 1576307571:
 - Made `Hyperparams.db` smaller in size to quicken hyperparameter loading.
 - Renamed `dataUtils.py` to `trainingDataUtils.py` to reduce ambigutity.

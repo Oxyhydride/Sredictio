@@ -28,7 +28,7 @@ class TradingEnv(gym.Env):
 
     Action Space:
     - 3 Actions: Sell [0], Hold [1], Buy [2]
-    - 10 Amounts: 1/10 of total, 2/10 of total, 3/10 of total etc.
+    - 5 Amounts: 1/5 of total, 2/5 of total, 3/5 of total etc.
     """
     metadata = {'render.modes': ['human', 'system', 'none']}
     viewer = None
@@ -84,7 +84,7 @@ class TradingEnv(gym.Env):
         self.stock_owned_history = None
 
         # Action space
-        self.action_space = gym.spaces.MultiDiscrete([3, 10])
+        self.action_space = gym.spaces.MultiDiscrete([3, 5])
 
         # Observation space
         self.observation_space = gym.spaces.Box(low=0, high=1,
@@ -209,7 +209,7 @@ class TradingEnv(gym.Env):
 
         # Split Action type and Amount
         action_type = action[0]  # Sell: 0, Hold: 1, Buy: 2
-        action_amount = (action[1] + 1) / 10  # Representing 1/10, 2/10, 3/10 etc.
+        action_amount = (action[1] + 1) / 5  # Representing 1/5, 2/5, 3/5 etc.
 
         if action_type == 0:  # Sell
             stock_sold = int(self.stock_owned * action_amount)  # We won't want partial stocks, now do we?
@@ -238,7 +238,7 @@ class TradingEnv(gym.Env):
         # Append action amount to actions_amounts
         # NOTE: Negative values = Sell
         self.actions_amounts.append(
-            (action[1] + 1) / 10 if action[0] == 2 else (-(action[1] + 1) / 10 if action[0] == 0 else 0))
+            (action[1] + 1) / 5 if action[0] == 2 else (-(action[1] + 1) / 5 if action[0] == 0 else 0))
 
     def get_val(self):
         """
@@ -284,7 +284,7 @@ class TradingEnv(gym.Env):
         # Return observation list
         return obs
 
-    def render(self, mode: str = "human"):
+    def render(self, mode: str = "human"):  # TODO: UPDATE RENDERING FUNCTION TO WORK FORM COMMAND-LINE EXECUTION
         """
         Renders the trading environment.
 

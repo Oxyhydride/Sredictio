@@ -18,7 +18,7 @@ from stable_baselines import A2C
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from lib.env.TradingEnv import TradingEnv
+from lib.environment.TradingEnv import TradingEnv
 from lib.utils import trainingDataUtils
 
 # SETUP
