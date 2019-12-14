@@ -19,7 +19,7 @@ from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from lib.utils import baselineUtils, dataUtils, graphUtils
+from lib.utils import baselineUtils, trainingDataUtils, graphUtils
 from lib.env.TradingEnv import TradingEnv
 from lib.utils.miscUtils import create_path, natural_sort
 
@@ -77,7 +77,7 @@ graphUtils.setup_graph()
 set_global_seeds(SEED)
 
 # DATA PREPARATION
-trainingDF = dataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+trainingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # PREPROCESSING
 # Prepare baseline scores on training data
@@ -131,7 +131,7 @@ print()
 
 # MODEL TESTING
 # Prepare testing data
-testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+testingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # Generate baseline scores
 test_baselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))

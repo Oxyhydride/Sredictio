@@ -2,7 +2,7 @@
 baselineUtils.py
 
 Created on 2019-10-29
-Updated on 2019-12-09
+Updated on 2019-12-04
 
 Copyright Ryan Kan 2019
 
@@ -134,7 +134,7 @@ class Baselines:
 
 # DEBUG CODE
 if __name__ == "__main__":
-    from lib.utils.dataUtils import prep_data
+    from lib.utils.trainingDataUtils import prep_data
 
     # Prepare data
     debugDF = prep_data("../trainingData/", "AMZN")

@@ -2,7 +2,7 @@
 Main.py
 
 Created on 2019-12-04
-Updated on 2019-12-11
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -21,7 +21,7 @@ from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 from lib.deployment.obtainData import get_model_file, get_lookback_window, get_obs_data
-from lib.utils.dataUtils import add_technical_indicators
+from lib.utils.trainingDataUtils import add_technical_indicators
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings

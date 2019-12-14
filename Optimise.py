@@ -2,7 +2,7 @@
 Optimise.py
 
 Created on 2019-11-30
-Updated on 2019-12-10
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -19,7 +19,7 @@ from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
 from lib.env.TradingEnv import TradingEnv
-from lib.utils import dataUtils
+from lib.utils import trainingDataUtils
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -50,8 +50,8 @@ NO_JOBS = args.no_parallel_jobs
 VERBOSE = int(args.verbose) == 1
 
 # DATA PREPARATION
-trainingDF = dataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK)
-testingDF = dataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK)
+trainingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK)
+testingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK)
 
 
 # OPTUNA FUNCTIONS

@@ -2,7 +2,7 @@
 TradingEnv.py
 
 Created on 2019-06-03
-Updated on 2019-12-10
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -15,7 +15,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 
-from lib.utils.dataUtils import add_technical_indicators
+from lib.utils.trainingDataUtils import add_technical_indicators
 from lib.utils.graphUtils import setup_graph
 
 
@@ -416,7 +416,7 @@ class TradingEnv(gym.Env):
 
 # DEBUGGING CODE
 if __name__ == "__main__":
-    from lib.utils.dataUtils import prep_data
+    from lib.utils.trainingDataUtils import prep_data
 
     # Prepare dataframe
     debugDF = prep_data("../trainingData/", "BA")  # Prepare boeing data
