@@ -132,7 +132,7 @@ while True:
     # If not current date, then find out how many days before it is
     if dataframeDate != (datetime.datetime.today() - datetime.timedelta(days=sentimentDataIndex)).strftime("%Y-%m-%d"):
         daysDifference = (datetime.datetime.today() - datetime.timedelta(
-            days=sentimentDataIndex) - datetime.datetime.strptime(dataframeDate, "%Y-%m-%d")).days
+            days=sentimentDataIndex) - dataframeDate).days
 
         # Fill in next (daysDifference + 1) days with the current entry's sentiment data
         for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, lookbackWindow)):
