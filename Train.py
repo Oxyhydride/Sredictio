@@ -2,7 +2,7 @@
 Train.py
 
 Created on 2019-11-30
-Updated on 2019-12-10
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -19,8 +19,8 @@ from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from lib.utils import baselineUtils, trainingDataUtils, graphUtils
 from lib.environment.TradingEnv import TradingEnv
+from lib.utils import baselineUtils, dataUtils, graphingUtils
 from lib.utils.miscUtils import create_path, natural_sort
 
 # ARGUMENTS
@@ -73,43 +73,43 @@ RENDER = int(args.render_type)
 USE_TENSORBOARD = (args.use_tensorboard == "1")
 
 # SETUP
-graphUtils.setup_graph()
+graphingUtils.setup_graph()
 set_global_seeds(SEED)
 
 # DATA PREPARATION
-trainingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+trainingDF = dataUtils.process_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # PREPROCESSING
-# Prepare baseline scores on training data
+# Run baselines on training data and generate their scores
 train_baselines = baselineUtils.Baselines(trainingDF, render=(RENDER == 2))
 train_baselines.run_policies()
 
-# Obtain best study's parameters
-print("\nLoading Optuna study parameters...")
+# Obtain the best agent's parameters from the Optuna study
+print("\nLoading Optuna study hyperparameters...")
 study = optuna.load_study(study_name="A2C", storage=f"sqlite:///{OPTUNA_STUDY_FILE}")
-params = study.best_trial.params
-print("Done!\n")
+hyperparams = study.best_trial.params
+print("Successfully obtained hyperparameters!\n")
 
 # MODEL TRAINING
 # Define a environment for the agent to train on
 agentEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, max_trading_session=MAX_TRADING_SESSION,
-                      is_serial=False, look_back_window_size=LOOK_BACK_WINDOW)
-trainEnv = DummyVecEnv([lambda: agentEnv])
+                      is_serial=False, lookback_window_size=LOOK_BACK_WINDOW)
+trainEnv = DummyVecEnv([lambda: agentEnv])  # This is the environment which the agent trains on
 
-# Create an A2C agent
+# Create the A2C agent
 if USE_TENSORBOARD:
-    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C", **params)
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C", **hyperparams)
 
 else:
-    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, **params)
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, **hyperparams)
 
-# Train the model!
+# Train the agent
 model.learn(total_timesteps=NO_ITERATIONS, seed=SEED)
 
 # MODEL EVALUATION
-# How well did our model perform on the training data?
+# Define an evaluation environment
 a2cEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_serial=True,
-                    look_back_window_size=LOOK_BACK_WINDOW)
+                    lookback_window_size=LOOK_BACK_WINDOW)
 done = False
 
 train_state = a2cEnv.reset(print_init_invest_amount=True)
@@ -124,22 +124,22 @@ while not done:
 
 a2cScore = a2cEnv.get_val()  # The model's score
 
-# Output results
+# Output results for the training environment
 print("-" * 50, "TRAINING RESULTS", "-" * 50)
 print(f"A2C got ${a2cScore:.2f} ({a2cScore / a2cEnv.init_invest * 100 - 100:.3f}% Increase)")
 print()
 
 # MODEL TESTING
-# Prepare testing data
-testingDF = trainingDataUtils.prep_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+# Prepare the testing data
+testingDF = dataUtils.process_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
-# Generate baseline scores
+# Run baselines on testing data and generate their scores
 test_baselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))
 test_baselines.run_policies()
 
-# Run the A2C agent on the testing data
+# Test how well the agent does on the testing environment
 a2cEnv = TradingEnv(testingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_serial=True,
-                    look_back_window_size=LOOK_BACK_WINDOW)  # For testing purposes
+                    lookback_window_size=LOOK_BACK_WINDOW)
 done = False
 
 test_state = a2cEnv.reset(print_init_invest_amount=True)
@@ -152,21 +152,21 @@ while not done:
     if RENDER in [1, 2]:
         a2cEnv.render()
 
-a2cScore = a2cEnv.get_val()  # The model's score
+a2cScore = a2cEnv.get_val()  # The model's ending portfolio value
 
-# Output results
+# Output results of the testing environment
 print("-" * 50, "TESTING RESULTS", "-" * 50)
 print(f"A2C got ${a2cScore:.2f} ({a2cScore / a2cEnv.init_invest * 100 - 100:.3f}% Increase)")
 print()
 
 # SAVE THE MODEL
-# Create directory
+# Create the model directory
 create_path(MODEL_DIRECTORY)
 
-# List all files in MODEL_DIRECTORY
+# List all files in `MODEL_DIRECTORY`
 allModelFiles = natural_sort(os.listdir(MODEL_DIRECTORY))
 
-# Try to get latest model
+# Attempt to obtain the latest model
 latestModelFile = "NO_FILE_FOUND!"
 for fileName in allModelFiles:
     if fileName[:7] == "LATEST=":
@@ -174,7 +174,7 @@ for fileName in allModelFiles:
         break
 
 # Check if there is a latest model
-if latestModelFile != "NO_FILE_FOUND!":
+if latestModelFile != "NO_FILE_FOUND!":  # There is a latest model
     # Get all existing files
     allExistingFiles = os.listdir(MODEL_DIRECTORY)
 
@@ -187,13 +187,13 @@ if latestModelFile != "NO_FILE_FOUND!":
             proposedName = latestModelFile[7:].split(".")[0] + f" ({currRenameAttempt}).zip"
 
         if proposedName not in allExistingFiles:
-            # No conflicts! Go ahead with rename
+            # No conflicting games; go ahead with rename
             os.rename(MODEL_DIRECTORY + latestModelFile, MODEL_DIRECTORY + proposedName)
             break
 
         else:
-            # Conflict! Increment currRenameAttempt by 1 and try again
+            # Conflicting names; increment `currRenameAttempt` by 1 and try again
             currRenameAttempt += 1
 
-# Save model as the latest model
+# Save the current model as the latest model
 model.save(MODEL_DIRECTORY + f"LATEST={OUTPUT_FILE_PREFIX}_LBW-{LOOK_BACK_WINDOW}_NOI-{NO_ITERATIONS}.zip")

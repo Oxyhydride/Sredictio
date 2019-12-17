@@ -325,7 +325,7 @@ class TradingEnv(gym.Env):
         self.cur_step = self.start_index
         self.stock_owned = None
         self.cash_in_hand = None
-        self.done = False  # TODO: REMOVE
+        self.done = False
         self.actions_taken = []
         self.actions_amounts = []
         
@@ -339,8 +339,7 @@ class TradingEnv(gym.Env):
         
         # Observation space: give estimates in order to sample and build scaler
         stock_max = max(max(self.open_history), max(max(self.high_history), max(max(self.low_history), max(self.close_history))))
-        
-        # TODO: FIX OBSERVATION SPACE DEFINITION BELOW, IF NEEDED
+
         self.observation_space = spaces.Box(low=-1, high=init_invest * 3 * (1 + (1 // stock_max)), shape=(8, self.lookback_window), dtype=np.float32)
         
         # Rendering variables

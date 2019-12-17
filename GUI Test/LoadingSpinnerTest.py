@@ -16,7 +16,8 @@ def draw_progress_circle(canvas, center_x, center_y, scale_factor, circle_radius
         draw_circle(canvas, center_x, scale_factor * sqrt(2) + center_y, circle_radius, colour=colour),
         draw_circle(canvas, center_x, -scale_factor * sqrt(2) + center_y, circle_radius, colour=colour),
 
-        # Center point, TODO: REMOVE AFTER DEBUG
+        # Center point
+        # TODO(Ryan-Kan): REMOVE THIS CODE AFTER DEBUGGING
         draw_circle(canvas, center_x, center_y, 1, colour="red")
     ]
 
@@ -28,7 +29,7 @@ def draw_circle(canvas, x, y, rad, colour="blue"):
 
 
 def update_spinner():
-    # TODO: UPDATE SPINNER
+    # TODO(Ryan-Kan): UPDATE SPINNER
     pass
 
 

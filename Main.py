@@ -2,7 +2,7 @@
 Main.py
 
 Created on 2019-12-04
-Updated on 2019-12-14
+Updated on 2019-12-17
 
 Copyright Ryan Kan 2019
 
@@ -21,7 +21,7 @@ from stable_baselines import A2C
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 from lib.deployment.obtainData import get_model_file, get_lookback_window, get_obs_data
-from lib.utils.trainingDataUtils import add_technical_indicators
+from lib.utils.dataUtils import add_technical_indicators
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
@@ -61,7 +61,7 @@ RETRY_COUNT = args.retry_count
 # Get the model file from the model directory
 modelFile = get_model_file(MODEL_DIRECTORY)
 
-# Get the lookback window from the model file
+# Get the value for the lookback window from the model file
 lookbackWindow = get_lookback_window(modelFile)
 
 # Get the data for the observation array
@@ -70,20 +70,20 @@ stockDataframe, sentimentDataframe, ownedStockArr = get_obs_data(STOCK_NAME, STO
                                                                  retry_count=RETRY_COUNT)
 
 # PREPROCESSING
-# 1. Stock (OHLCV) data
-stockData = np.array([[-2] * 5] * lookbackWindow, dtype=np.float64)  # OHLC values, using -2 as a placeholder
-stockDataIndex = 0  # The index for the stockData array
-dataframeIndex = 0  # The index for the dataframe
+# 1. OHLCV data
+ohlcvData = np.array([[-2] * 5] * lookbackWindow, dtype=np.float64)  # OHLCV values, using -2 as a placeholder
+ohlcvDataIndex = 0  # The index for the `ohlcvData` array
+dataframeIndex = 0
 
 while True:
     # Find out what the current entry of the stock data is
     dataframeDate = stockDataframe.index[-(dataframeIndex + 1)].date()  # This is the current date
 
-    # If not current date, then find out how many days before it is
-    if dataframeDate != datetime.date.today() - datetime.timedelta(days=stockDataIndex):
-        daysDifference = (datetime.date.today() - datetime.timedelta(days=stockDataIndex) - dataframeDate).days
+    # If the `dataframeDate` is not current date, then find out how many days differ
+    if dataframeDate != datetime.date.today() - datetime.timedelta(days=ohlcvDataIndex):
+        daysDifference = (datetime.date.today() - datetime.timedelta(days=ohlcvDataIndex) - dataframeDate).days
 
-        # TODO: REPLACE CODE BELOW WITH LINEAR FIT DATA
+        # TODO(Ryan-Kan): REPLACE CODE BELOW WITH LINEAR FIT DATA
         # Get SARIMAX values
         sarimaxValues = [[-2] * daysDifference] * 5
 
@@ -91,152 +91,150 @@ while True:
             currDataSeries = stockDataframe.iloc[:, i]
             forecastModel = SARIMAX(np.array(currDataSeries), enforce_stationarity=False)  # Only want OHLC values
             modelFit = forecastModel.fit(method='bfgs', disp=False)
-            forecast = modelFit.forecast(steps=daysDifference)  # Definitely an np.array
+            forecast = modelFit.forecast(steps=daysDifference)  # Definitely an `np.ndarray`
 
             assert isinstance(forecast, np.ndarray), "This error will never appear, this is just to pacify the IDEs!"
 
             sarimaxValues[i] = list(forecast)
 
         # Fill in SARIMAX values
-        for i in range(stockDataIndex, min(stockDataIndex + daysDifference, lookbackWindow)):
-            for j in range(5):  # 5 Columns
-                stockData[i][j] = sarimaxValues[j][i - stockDataIndex]
+        for i in range(ohlcvDataIndex, min(ohlcvDataIndex + daysDifference, lookbackWindow)):
+            for j in range(5):  # 5 columns of data, so iterate 5 times
+                ohlcvData[i][j] = sarimaxValues[j][i - ohlcvDataIndex]
 
-        stockDataIndex += daysDifference
+        ohlcvDataIndex += daysDifference
 
     else:
-        # Fill in entry with current day's OHLC data
-        stockData[stockDataIndex] = list(stockDataframe.iloc[-(dataframeIndex + 1)])[:5]  # OHLC values only
-        dataframeIndex += 1  # Simply increment this by 1
+        # Fill in entry with the current day's OHLCV data
+        ohlcvData[ohlcvDataIndex] = list(stockDataframe.iloc[-(dataframeIndex + 1)])[:5]  # We want OHLCV values only
+        dataframeIndex += 1
 
-    # Check if there are any entries left
-    if [-2, -2, -2, -2, -2] not in stockData.tolist():
+    # Check if there are any entries left unfilled
+    if [-2, -2, -2, -2, -2] not in ohlcvData.tolist():
         break
+
     else:
-        convertedList = stockData.tolist()
+        # Since there are still entries to fill, find the next instance
+        convertedList = ohlcvData.tolist()
 
-        assert isinstance(convertedList, list), type(convertedList)  # Check if list
+        assert isinstance(convertedList, list), "This error will never appear, this is just to pacify the IDEs!"
 
-        stockDataIndex = convertedList.index([-2, -2, -2, -2, -2])
+        ohlcvDataIndex = convertedList.index([-2, -2, -2, -2, -2])  # This finds the next unfilled entry
 
 # 2. Sentiment data
-sentimentData = [-2] * lookbackWindow  # -2 cannot appear, therefore use it
+sentimentData = [-2] * lookbackWindow  # -2 cannot appear in the list, therefore use it as a placeholder
 
-sentimentDataIndex = 0  # The index for the sentimentData array
-dataframeIndex = 0  # The index for the dataframe
+sentimentDataIndex = 0  # The index for the `sentimentData` array
+dataframeIndex = 0
 
 while True:
     # Find out what the current entry of the sentiment data is
-    dataframeDate = sentimentDataframe["Date"][dataframeIndex]  # This is the date obtained from the dataframe
+    dataframeDate = sentimentDataframe["Date"][dataframeIndex]
 
-    # If not current date, then find out how many days before it is
+    # If not current date, then find out how many days differ
     if dataframeDate != (datetime.datetime.today() - datetime.timedelta(days=sentimentDataIndex)).strftime("%Y-%m-%d"):
-        daysDifference = (datetime.datetime.today() - datetime.timedelta(
-            days=sentimentDataIndex) - dataframeDate).days
+        daysDifference = (datetime.datetime.today() - datetime.timedelta(days=sentimentDataIndex) - dataframeDate).days
 
-        # Fill in next (daysDifference + 1) days with the current entry's sentiment data
+        # Fill in next (daysDifference + 1) days with the current entry's sentiment
         for i in range(sentimentDataIndex, min(sentimentDataIndex + daysDifference + 1, lookbackWindow)):
             sentimentData[i] = sentimentDataframe["Sentiment"][dataframeIndex]
 
-    else:  # If not, fill in current day's sentiment
+    else:  # If not, fill in the sentiment of the current day
         sentimentData[sentimentDataIndex] = sentimentDataframe["Sentiment"][dataframeIndex]
 
-    # If there are still entries to fill, continue
+    # If there are still entries to fill, move on
     if -2 in sentimentData:
-        sentimentDataIndex = sentimentData.index(-2)  # Next index to work on
-        dataframeIndex += 1  # Increment this by 1
+        sentimentDataIndex = sentimentData.index(-2)  # This finds the next unfilled entry
+        dataframeIndex += 1
 
     else:
         break
 
 # 3. Stock History data
-"""
-NOTE:
-- Assume the stock history is arranged in CHRONOLOGICAL order, from EARLIEST to LATEST.
-- Assume dates are written in YYYY-MM-DD format.
-"""
-# Obtain data which is relevant
+# Obtain the stock history for the current stock
 relevantHist = []
 for entry in ownedStockArr[::-1]:
     if entry[2] == STOCK_SYMBOL:
         relevantHist.append(entry)
 
-# Check if relevantHist is sufficient
+# Check if there is enough data in `relevantHist`
 ownedData = [0] * lookbackWindow
 
-ownedHistIndex = 0  # The index for the ownedData array
-dataIndex = 0  # The index for the np.array
+ownedHistIndex = 0  # The index for the `ownedData` array
+dataIndex = 0  # The index for the `np.ndarray`
 
-# Fill in missing stock_owned data
+# Fill in missing `ownedData` entries
 try:
     while True:
-        dataDate = relevantHist[dataIndex][0]  # This is the recorded date
+        dataDate = relevantHist[dataIndex][0]  # This is the recorded date in the `np.ndarray`
 
+        # If not current date, then find out how many days differ
         if datetime.datetime.strptime(dataDate, "%Y-%m-%d") != datetime.datetime.today() - datetime.timedelta(
                 days=ownedHistIndex):
-            # If not current date, then find out how many days before it is
             daysDifference = (datetime.datetime.today() - datetime.timedelta(
                 days=ownedHistIndex) - datetime.datetime.strptime(dataDate, "%Y-%m-%d")).days
 
-            # Fill in next (daysDifference + 1) days with the current entry's data
+            # Fill in next `(daysDifference + 1)` days with the current entry's data
             for i in range(ownedHistIndex, min(ownedHistIndex + daysDifference + 1, lookbackWindow)):
                 ownedData[i] = relevantHist[dataIndex][1]
 
         else:
-            # Fill in current day's data
+            # Fill in current day's "owned stocks" data
             ownedData[ownedHistIndex] = relevantHist[dataIndex][1]
 
-        # If there are empty entries, continue
+        # If there are empty entries, continue filling in data
         if 0 in ownedData:
-            ownedHistIndex = ownedData.index(0)  # Next index to work on is this
-            dataIndex += 1  # Increment this by 1
+            ownedHistIndex = ownedData.index(0)  # This finds the next unfilled entry
+            dataIndex += 1
 
         else:
             break
 
-except IndexError:  # Before this, nothing was recorded
-    # So leave it as 0's
+except IndexError:
+    # This means that, before today, nothing was recorded.
+    # So leave the list as 0's
     pass
 
-# Reverse all arrays & cast some to np.ndarray
-stockData = stockData[::-1]
+# Reverse all arrays, and cast lists to `np.ndarray`
+ohlcvData = ohlcvData[::-1]
 sentimentData = np.array(sentimentData[::-1])
 ownedData = np.array(ownedData[::-1])
 
-# Convert to dataframe
-dataframe = pd.DataFrame({"Open": stockData[:, 0], "High": stockData[:, 1], "Low": stockData[:, 2],
-                          "Close": stockData[:, 3], "Volume": stockData[:, 4], "Sentiment": sentimentData})
+# Make a dataframe with the `stockData` and `sentimentData` arrays
+dataframe = pd.DataFrame({"Open": ohlcvData[:, 0], "High": ohlcvData[:, 1], "Low": ohlcvData[:, 2],
+                          "Close": ohlcvData[:, 3], "Volume": ohlcvData[:, 4], "Sentiment": sentimentData})
 
-# Add technical indicators
+# Add technical indicators to the dataframe
 dataframe = add_technical_indicators(dataframe)
 
-# Add owned stocks to dataframe
+# Add the owned stocks history to the dataframe
 dataframe["Owned Stocks"] = ownedData
 
-# Convert to np.ndarray
+# Convert the dataframe to a `np.ndarray`
 observation = dataframe.transpose().values
 
-# Scale the observation array
+# Normalise the observation array
 minMaxScaler = preprocessing.MinMaxScaler()
 observationScaled = minMaxScaler.fit_transform(observation.astype("float32"))
 
 print("Generated the observation array.")
 
 # MODEL PREDICTION
-# Load A2C model
+# Load the A2C model
 model = A2C.load(MODEL_DIRECTORY + modelFile)
 
 # Generate possible actions
 suggestedActionsCount = {"Sell": 0, "Hold": 0, "Buy": 0}  # Tally the number of times the model suggests each action
 suggestedAmounts = {"Sell": [], "Hold": [], "Buy": []}  # Tally the amount for each action type
 
+# Run the prediction algorithm `NO_PREDICTIONS` times to see which action appears the most
 for _ in range(NO_PREDICTIONS):
     action, _ = model.predict([observationScaled])
     suggestedAction = action[0]
 
     if suggestedAction[0] == 0:  # Sell
         suggestedActionsCount["Sell"] += 1
-        suggestedAmounts["Sell"].append(suggestedAction[1] + 1)
+        suggestedAmounts["Sell"].append(suggestedAction[1] + 1)  # The amount ranges from 0 to 4, so increment by 1
 
     elif suggestedAction[0] == 1:  # Hold
         suggestedActionsCount["Hold"] += 1
@@ -246,21 +244,21 @@ for _ in range(NO_PREDICTIONS):
         suggestedActionsCount["Buy"] += 1
         suggestedAmounts["Buy"].append(suggestedAction[1] + 1)
 
-# Find most probable action
+# Find mode of the `suggestedActionsCount` set
 highestCount = max(list(suggestedActionsCount.values()))
 bestAction = list(suggestedActionsCount.keys())[list(suggestedActionsCount.values()).index(highestCount)]
 
-# Get amount
+# Get mode of the `suggestedAmounts` for that action
 possibleAmounts = sorted(suggestedAmounts[bestAction])
 bestAmount = max(set(possibleAmounts), key=possibleAmounts.count)
 
-# Output action & amount
+# Output the action & amount
 print(f"\nThe current stock price is at ${observation[3][-1]:.2f}")
 if bestAction == "Hold":
-    print("Hold the stocks.")
+    print("HOLD the stocks.")
 
 elif bestAction == "Sell":
-    print(f"Sell {bestAmount}/5 of owned stocks (if possible).")
+    print(f"If possible, SELL {bestAmount}/5 of owned stocks.")
 
 else:  # Buy
-    print(f"Buy stocks using {bestAmount}/5 of total balance (if possible).")
+    print(f"If possible, BUY stocks using {bestAmount}/5 of total balance (if possible).")

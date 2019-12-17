@@ -3,6 +3,23 @@
    Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
             reverse order, where the latest update is listed on top, and the earliest update is listed last.
 
+Update 1576566784:
+- Updated ALL code to be PEP 8 (Style Guide for Python Code) and PEP 257 (Docstring Conventions) compliant
+  * Removed trivial comments (e.g. If a code is `a += 1` the comment `# Increment by 1` has been removed)
+  * Updated ambiguous comments (e.g. "find out how many days before it is" was updated to
+    "find out how many days differ")
+  * Made comments for similar function calls similar (e.g. for the same function `func()`, the comments surrounding it
+    are not similar, e.g. "# Get data from somewhere")
+  * Fixed incorrect terminology (e.g. The word "function" that was used in a class was changed to "method", which is
+    the correct vocabulary)
+  * Fixed most spelling mistakes.
+- All functions' docstrings have been updated to the Google format.
+- Renamed *most* ambiguous variables.
+- Renamed `graphUtils.py` to `graphingUtils.py` (as it is a more fitting name).
+- Modified the copyright notice in `sentimentUtils.py`. (finally!)
+- Reversed the change to "rename `dataUtils.py` to `trainingDataUtils.py`" as the functions inside it are all used to
+  handle data processing. I.E. rename `trainingDataUtils.py` to `dataUtils.py` to match functionality of the program.
+
 Update 1576309748:
 - Improved the file renaming system in `Train.py`
 - Renamed `env` to `environment`.
@@ -98,7 +115,7 @@ Update 1575977119
 - Updated the `Sredictio Training Test.yml` action file
 
 Update 1575976648
-- Removed versioning from all files
+- Removed version numbers from all files
 - Prepared files for release 0.1.0
 
 Update 1575955776

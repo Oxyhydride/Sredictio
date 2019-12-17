@@ -2,7 +2,7 @@
 obtainData.py
 
 Created on 2019-12-12
-Updated on 2019-12-13
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -21,15 +21,25 @@ from lib.utils.stockUtils import get_stock_data, process_stock_data
 
 
 # FUNCTIONS
-def get_model_file(model_dir: str):
+def get_model_file(model_dir):
     """
     Gets the latest model file from the model directory.
 
-    Keyword arguments:
-    - model_dir, str: The model directory.
+    Args:
+        model_dir (str): The model directory.
+
+                         The model directory is the directory where all the models, current and previous,
+                         are stored. By default, the model directory for Sredictio is `Models`, in the
+                         main directory. This makes obtaining the model file easier.
 
     Returns:
-    - The latest model's file name (String)
+        str: The latest model's file name.
+             The latest model file will be in the `model_dir`, and its name will follow this format:
+             "LATEST={Model Prefix}_LBW-{Lookback Window}_NOI-{Number of Iterations}.zip".
+
+    Raises:
+        AssertionError: If no file with the prefix "LATEST=" is found.
+
     """
     # List all files in the model_dir
     all_model_files = natural_sort(os.listdir(model_dir))
@@ -42,75 +52,101 @@ def get_model_file(model_dir: str):
             break
 
     # Check if the latest model was found
-    assert model_file_name != "NO_FILE_FOUND!", "A model with the prefix 'LATEST=' was not found. Please append that " \
-                                                "prefix to the latest model file. "
+    assert model_file_name != "NO_FILE_FOUND!", "A model with the prefix 'LATEST=' was not found. Please append that" \
+                                                + " prefix to the latest model file. "
 
     # Return model file
     return model_file_name
 
 
-def get_lookback_window(model_file_name: str):
+def get_lookback_window(model_file_name):
     """
-    Gets the needed lookback window from the model file name.
+    Gets the needed lookback window from the model's filename.
 
-    Keyword arguments:
-    - model_file_name, str: The latest model's file name
+    Args:
+        model_file_name (str): The latest model's filename.
 
     Returns:
-    - The lookback window for that model (Integer)
+        int: The lookback window for that particular model
+
+    Examples:
+        >>> LBW = get_lookback_window("LATEST=MyPrefix_LBW-7_NOI-9.zip")  # This may be a real model file
+        >>> print(LBW)
+        7
+
     """
-    # Get Look Back Window
+    # Get Lookback Window
     return int(model_file_name.split("_")[1][4:])  # Obtains the look back window from the model file
 
 
-def get_obs_data(stock_name: str, stock_symbol: str, stock_history_file: str, lookback_window: int,
-                 days_to_scrape: int = 100, retry_count: int = 5):
+def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, days_to_scrape=100, retry_count=5):
     """
     Gets the data needed to generate the observation array.
 
-    Keyword arguments:
-    - stock_name, str: The stock name.
-    - stock_symbol, str: The stock symbol. (aka ticker)
-    - lookback_window, int: The lookback window.
-    - stock_history_file, str: The file which contains all the stock transaction histories.
-    - days_to_scrape, int: The number of days to scrape the data. (Default = 100)
-    - retry_count, int: The number of attempts to get the stock data from yahoo before failing. (Default = 3)
+    Args:
+        stock_name (str): The stock name.
+                          For example, "Apple", "Tesla", "Boeing", "Disney".
+
+        stock_symbol (str): The stock symbol. Also known as the stock ticker.
+                            For example, "AAPL", "TSLA", "BA", "DIS".
+
+        stock_history_file (str): The file which contains all the stock transaction histories.
+
+                                  By default, this file would've been named `Stock History.csv`. However,
+                                  some may choose to rename this file. Hence, remember to specify the
+                                  renamed `stock_history_file` correctly.
+
+        lookback_window (int): The lookback window for the model.
+
+                               The lookback window can be obtained by passing the model's filename as an
+                               argument in the `get_lookback_window` function. This will return an
+                               integer, which is the lookback_window.
+
+        days_to_scrape (int): The number of days to scrape the data. (Default = 100)
+
+                              When scraping OHLCV data and the Sentiment data, the program needs to know
+                              how many days of data to scrape. This argument specifies that number of
+                              days to scrape data.
+
+        retry_count (int): The number of attempts to get the stock data from Yahoo Finance before giving
+                           up. (Default = 3)
 
     Returns:
-    - The stock dataframe
-    - The sentiment dataframe
-    - The "owned stock history" array
-    - The look back window.
+        pd.DataFrame: The OHLCV dataframe.
+        pd.Dataframe: The sentiment dataframe, which contains all the sentiment data from that range of
+                      days.
+        np.ndarray: The "owned stock history" array, which lists the number of stocks you own for every
+                    stock.
+
     """
     # Check if look back window is sufficient
     assert int(2.5 * lookback_window) < days_to_scrape, "Days to scrape data has to be larger than 2.5 times the look" \
                                                         " back window. "
 
-    # Get stock data
-    # First get the historical data
+    # Get the historical OHLCV data
     historical_data = get_stock_data(stock_symbol,
                                      (datetime.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
                                      datetime.today().strftime("%Y-%m-%d"),
                                      retry_count=retry_count)
 
-    # Then process it as a pandas dataframe
+    # Process the OHLCV data as a pandas dataframe
     stock_dataframe = process_stock_data(historical_data)
 
-    # Get sentiment data
+    # Get the sentiment data
     print(f"Obtaining {stock_name} sentiment data...")
 
     sentiment_dataframe = get_sentiment_data(stock_symbol, stock_name,
                                              (date.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
                                              date.today().strftime("%Y-%m-%d"), verbose=False, to_csv=False)
 
-    # Get owned stock history
+    # Get the owned stock history
     print(f"Obtaining owned stock history...")
 
     owned_stock_array = pd.read_csv(stock_history_file).to_numpy()
 
     print("Done!")
 
-    # Return the dataframes
+    # Return the obtained dataframes (and the np.ndarray)
     return stock_dataframe, sentiment_dataframe, owned_stock_array
 
 

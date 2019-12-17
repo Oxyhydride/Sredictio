@@ -2,7 +2,7 @@
 Update Training Data.py
 
 Created on 2019-12-13
-Updated on 2019-12-13
+Updated on 2019-12-14
 
 Copyright Ryan Kan 2019
 
@@ -34,17 +34,18 @@ VERBOSE_LEVEL = int(input("\nWhat should the verbose level be?\n0 = No messages;
 print()
 
 # CODE
-# Find all stock symbols
+# Find all stock symbols that was used for training
 stockSymbols = natural_sort([d.split("/")[2] for d in [x[0] for x in os.walk(TRAINING_DIR)][1:]])
 
-# Remove __pycache__
+# Remove `__pycache__` from the `stockSymbols` list
 try:
     stockSymbols.remove("__pycache__")
 
 except ValueError:
+    # If there is no `__pycache__`, then move on
     pass
 
-# Get all stocks' saved names
+# Get all the stocks' names
 stockNames = []
 for stockSymbol in stockSymbols:
     with open(TRAINING_DIR + stockSymbol + "/Stock Info.txt") as f:
@@ -67,21 +68,21 @@ for stockSymbol in stockSymbols:
 for i in range(len(stockNames)):
     stockNames[i] = list(stockNames)[i].replace("-", " ")
 
-# Create a symbol-name dictionary
+# Create a symbol to name dictionary
 symbolName = {}
 for i in range(len(stockNames)):
     symbolName[stockSymbols[i]] = stockNames[i]
 
-# Check what needs to be updated
+# Check what needs to be updated: All or only one
 if ALL_OR_ONE != "ALL":
     # Find the stock that needs updating
     symbolUpdate = ALL_OR_ONE
     nameUpdate = symbolName[symbolUpdate]
 
-    # Update symbolName with that stock
+    # Update `symbolName` with that stock
     symbolName = {symbolUpdate: nameUpdate}
 
-# Update training data for each stock
+# Update each stock's training data (i.e. the OHLCV data and the sentiment data)
 if VERBOSE_LEVEL == 0:
     iterable = trange(len(symbolName), desc="Updating training data (this may take a while!)")
 
@@ -94,17 +95,17 @@ for i in iterable:
     if VERBOSE_LEVEL > 0:
         print(f" UPDATING '{symbol}' TRAINING DATA ".center(80, "-"))
 
-    # Update OHLCV data
+    # Update the OHLCV data
     get_stock_data(symbol, START_DATE, END_DATE, save_as_csv=True, verbose=(VERBOSE_LEVEL != 0),
                    file_location=TRAINING_DIR + symbol + "/" + symbol + "_stocks.csv")
 
-    # Update sentiment data
+    # Update the sentiment data
     if VERBOSE_LEVEL > 0:
         print(f"Getting {symbol} sentiment data...")
     get_sentiment_data(symbol, name, START_DATE, END_DATE, output_dir=TRAINING_DIR + symbol + "/",
                        verbose=VERBOSE_LEVEL == 2)
 
-    # Print new line
+    # Print a newline at the end
     if VERBOSE_LEVEL > 0:
         print()
 
