@@ -2,7 +2,7 @@
 Update Training Data.py
 
 Created on 2019-12-13
-Updated on 2019-12-14
+Updated on 2019-12-17
 
 Copyright Ryan Kan 2019
 
@@ -21,8 +21,9 @@ from lib.utils.stockUtils import get_stock_data
 # INPUT
 TRAINING_DIR = "./Training Data/"
 
-ALL_OR_ONE = input("Should the program update all the training data or just one stock's?\nIf it is just one stock, "
-                   "input the STOCK'S SYMBOL in ALL CAPS. If not, enter `ALL` without the quotes. ")
+print("Should the program update all the training data or just one stock's training data?")
+ALL_OR_JUST_ONE = input("If it is just one stock, input the STOCK'S SYMBOL in BLOCK CHARACTERS. If not, enter 'ALL' "
+                        "without the quotes. ")
 
 print("\nFor the ENDING date, ensure that it is MORE RECENT than the STARTING date.")
 START_DATE = input("Please enter the starting date in the form YYYY-MM-DD: ")
@@ -74,9 +75,9 @@ for i in range(len(stockNames)):
     symbolName[stockSymbols[i]] = stockNames[i]
 
 # Check what needs to be updated: All or only one
-if ALL_OR_ONE != "ALL":
+if ALL_OR_JUST_ONE != "ALL":
     # Find the stock that needs updating
-    symbolUpdate = ALL_OR_ONE
+    symbolUpdate = ALL_OR_JUST_ONE
     nameUpdate = symbolName[symbolUpdate]
 
     # Update `symbolName` with that stock

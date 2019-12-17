@@ -25,7 +25,9 @@ from lib.utils import dataUtils
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove ugly tensorflow warnings
 
 # ARGUMENTS
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="A file which uses Bayesian Optimisation to find the best hyperparameters "
+                                             "for the A2C agent.")
+
 parser.add_argument("stock_dir", type=str, help="Directory where the stock files are found")
 parser.add_argument("training_stock", type=str, help="Which stock file should be used for training?")
 parser.add_argument("testing_stock", type=str, help="Which stock file should be used for testing?")
