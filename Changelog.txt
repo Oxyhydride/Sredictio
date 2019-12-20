@@ -1,0 +1,167 @@
+                                                  Sredictio Changelog
+------------------------------------------------------------------------------------------------------------------------
+   Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
+            reverse order, where the latest update is listed on top, and the earliest update is listed last.
+
+Update 1576834259:
+- Fixed incorrect observation array in `Main.py`.
+- Removed outdated code in `Extra Resources/Statistical Analysis`.
+- Renamed incorrect usage of `stockData` in all files.
+- Reorganised files in `Extra Resources`.
+
+Update 1576833340:
+- Updated To-Do comments to have a version attached to it.
+- Changed `Main.py`'s OHLCV Data processing method.
+- Removed the `statsmodels` requirement from `requirements.txt`.
+- Renamed some variables in `obtainData.py`.
+
+Update 1576569335:
+- Added the Sredictio Update Roadmap, under `Extra Resources/Update Plans`.
+- Removed redundant empty rows at the bottom of `Changelog.txt`.
+- Updated `Changelog.txt` format.
+- Added a file description to `Optimise.py`'s Argument Parser.
+- Optimised printing in `Update Training Data.py`.
+
+Update 1576566784:
+- Updated ALL code to be PEP 8 (Style Guide for Python Code) and PEP 257 (Docstring Conventions) compliant
+  * Removed trivial comments (e.g. If a code is `a += 1` the comment `# Increment by 1` has been removed)
+  * Updated ambiguous comments (e.g. "find out how many days before it is" was updated to
+    "find out how many days differ")
+  * Made comments for similar function calls similar (e.g. for the same function `func()`, the comments surrounding it
+    are not similar, e.g. "# Get data from somewhere")
+  * Fixed incorrect terminology (e.g. The word "function" that was used in a class was changed to "method", which is
+    the correct vocabulary)
+  * Fixed most spelling mistakes.
+- All functions' docstrings have been updated to the Google format.
+- Renamed *most* ambiguous variables.
+- Renamed `graphUtils.py` to `graphingUtils.py` (as it is a more fitting name).
+- Modified the copyright notice in `sentimentUtils.py`. (finally!)
+- Reversed the change to "rename `dataUtils.py` to `trainingDataUtils.py`" as the functions inside it are all used to
+  handle data processing. I.E. rename `trainingDataUtils.py` to `dataUtils.py` to match functionality of the program.
+
+Update 1576309748:
+- Improved the file renaming system in `Train.py`
+- Renamed `env` to `environment`.
+- Updated action amount quantity from x/10 to x/5.
+- Reformatted print output in `Main.py`
+- Updated latest model to accommodate the environment update and the hyperparameters update.
+
+Update 1576307571:
+- Made `Hyperparams.db` smaller in size to quicken hyperparameter loading.
+- Renamed `dataUtils.py` to `trainingDataUtils.py` to reduce ambigutity.
+
+Update 1576295654:
+- Updated `Hyperparams.db` with new hyperparameters
+- Updated `Sredictio Field Tests.xlsx` with 2019-12-13 data, hence completing the field tests.
+
+Update 1576247888:
+- Prettified `Changelog.txt` (again)
+- Fixed incorrect logical statement in `stockUtils.py`
+- Increased retry count from 3 to 5 in `obtainData.py`
+
+Update 1576230918:
+- Added `Update Training Data.py` to make updating the training data easier.
+- Consequently, all training data in the `Training Data` directory have been replaced.
+- The stock `BTC` has been renamed to `BTC-USD` to fit the "correct" stock symbol.
+- The README.md in the `Training Data` directory has been updated to reflect the new changes.
+- Under `stockUtils.py`, ``get_historical_data` has been updated with a new algorithm, and has been renamed to
+  `get_stock_data` instead.
+- `Main.py` and `obtainData.py` have been updated to accommodate the changes.
+
+Update 1576220523:
+- Prepared `stockUtils.py` for an update of the Stock Data Downloading Algorithm.
+- Updated `sentimentUtils.py` to allow direct downloading of sentiment data to the `Training Data` directory.
+- `Changelog.txt` was updated to be more "pleasing to the eyes".
+
+Update 1576164281:
+- Updated the `GUI Test` directory with more GUI tests.
+- Started moving `Main.py` code into the `lib/deployment` directory.
+- Added a "Stock Not Found" error to `stockUtils.py`
+
+Update 1576076441
+- Updated `GUIMain.py` with more testing code.
+- Updated `Stock History.csv` with 2019-12-11 field test results.
+
+Update 1576073392
+- Updated `Main.py`, reducing the default number of retries from 10 to 5.
+- Added 2019-12-11 field test results.
+
+Update 1576072800
+- A dumb person forget to update the `Updated on` string at the start of `Main.py`
+- The changelog was updated with the Version 0.1.2 hotfix.
+
+Update 1576072222
+- Emergency hotfix for the Yahoo Stock obtainer. The yahoo-fin library didn't work, so a hotfix was needed. The
+  `stockUtils.py` file was created as a result. `Main.py` was also updated to complement this change.
+- `requirements.txt` now excludes the `yahoo-fin` library.
+- README.md no longer shows the version number.
+
+Update 1575993696
+- Added a `Changelog.txt` to document all updates to files from 2019-12-10 onwards.
+- Removed `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` for being ineffective for picking out
+  issues in code.
+
+Update 1575992499
+- The Actions of `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` now will run on every branch, and
+  not just on the "master" branch. This change will allow us to see if the code is working *before* the final pull
+  request is made to the "master" branch.
+
+Update 1575992183
+- Added documentation to `miscUtils.py` functions so that their usage is more explicit.
+- Made `Sredictio Training Test.yml` work more efficiently.
+- Removed the reliance on one model file, and use a model directory instead. Updates to `Main.py`, `Train.py` and
+  `Sredictio Deployment Test.yml` reflect this change.
+- The model file has been moved into the `Models` directory, with a new prefix of `LATEST=`.
+- Made `Sredictio Deployment Test.yml` less likely to fail when obtaining Yahoo Finance data.
+- Updated `__init__.py` in the `lib` directory.
+- Updated `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml` to include copyright information and GitHub
+  Actions information.
+- Fixed weird spacing on the top of `Stock History.csv`.
+- The version number has been removed from `README.md`.
+
+Update 1575987306
+- Reorganised Sredictio files & folders
+- Renamed multiple files
+- Updated `requirements.txt` to use numpy 1.16.5 instead of numpy 1.17.4 (as numpy 1.17.4 was giving warnings)
+- Updated `Sredictio Deployment Test.yml` and `Sredictio Training Test.yml`
+
+Update 1575978274
+- Updated the `Sredictio Training Test.yml` action file
+- Updated `train.py`
+
+Update 1575977119
+- Fixed model
+- Updated the `Sredictio Training Test.yml` action file
+
+Update 1575976648
+- Removed version numbers from all files
+- Prepared files for release 0.1.0
+
+Update 1575955776
+- Updated `Sredictio Deployment Test.yml`
+
+Update 1575955702
+- Combined workflows into one file
+- Prettified `main.py`
+
+Update 1575955274
+- Updated workflows (again)
+- Updated `requirements.txt` to use numpy-1.17.4
+- Updated `main.py` to reflect the new numpy version
+
+Update 1575953879
+- Updated Sredictio workflows.
+
+Update 1575951026
+- Updated `TradingEnv.py` to include 38 other technical analysis features in the observation space
+- Updated `TradingEnv.py` to use a `pd.DataFrame` instead of a `np.ndarray`
+- Updated `train.py` to use the new observation state
+- Updated `main.py` to use the new observation state
+- Updated `optimise.py` to use the new observation state
+- Updated the model to use the new observation state
+- Updated `baselineUtils.py` to use the updated `TradingEnv.py` environment
+- Updated formulae in `Sredictio Field Tests.xlsx`
+- Restarted the field tests
+- Added new field test results to `stockHistory.csv`
+- Renamed `add_indicators` to `add_technical_indicators` in `dataUtils.py`
+- Prettified `miscUtils.py`

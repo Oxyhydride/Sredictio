@@ -1,0 +1,4 @@
+STOCK NAME:     Bitcoin
+STOCK SYMBOL:   BTC-USD
+NOTES:          (AS BELOW)
+- Some users may enter "BTC" instead of "BTC-USD".

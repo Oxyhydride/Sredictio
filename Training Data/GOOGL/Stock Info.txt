@@ -1,0 +1,6 @@
+STOCK NAME:     Google
+STOCK SYMBOL:   GOOGL
+NOTES:          (AS BELOW)
+- The "more correct" name for the company with the stock symbol "GOOGL" is "Alphabet Inc.". However, it is more often
+  referred as "Google" in texts and news articles. Hence, the Stock Name will be set as "Google" instead of "Alphabet
+  Inc.".

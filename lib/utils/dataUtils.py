@@ -1,8 +1,8 @@
 """
-dataUtils.py
+trainingDataUtils.py
 
 Created on 2019-05-21
-Updated on 2019-12-11
+Updated on 2019-12-16
 
 Copyright Ryan Kan 2019
 
@@ -20,39 +20,44 @@ from lib.utils.miscUtils import moving_average
 
 
 # FUNCTIONS
-def obtain_training_data(stock_directory: str, stock_symbol: str):
+def obtain_data(data_directory, stock_symbol):
     """
-    Processes data from the training directory for training.
+    Gets the training data from the data directory.
 
-    Keyword Arguments:
-     - stock_directory, str: Directory which contains the stock values file and the sentiment scores file
-     - stock_symbol, str: The stock symbol
+    Args:
+        data_directory (str): The directory which contains the OHLCV data file (a.k.a. stocks
+                              file) and the sentiment data file.
+
+        stock_symbol (str): The stock symbol. Also known as the stock ticker.
+                            For example, "AAPL", "GOOGL" and "TSLA" are all valid stock symbols.
 
     Returns:
-    - Array containing all the relevant values for the environment
-    """
-    full_path = stock_directory + stock_symbol + "/" + stock_symbol
+        - np.ndarray: Array containing all the relevant values for the environment
 
-    # Load stock prices from the CSV file
-    stock_data = read_csv(full_path + "_stocks.csv", header=0, squeeze=True)
+    """
+    # Generate the full path to the files
+    full_path = data_directory + stock_symbol + "/" + stock_symbol
+
+    # Load OHLCV values from the CSV file
+    ohlcv_data = read_csv(full_path + "_stocks.csv", header=0, squeeze=True)
 
     # Remove the "Adj Close" column (which is the 6th column)
-    stock_data = stock_data.drop(stock_data.columns[5], axis=1)
+    ohlcv_data = ohlcv_data.drop(ohlcv_data.columns[5], axis=1)
 
-    # Convert stock data to np.array
-    stock_arr = stock_data.values
+    # Convert stock data to `np.ndarray`
+    ohlcv_arr = ohlcv_data.values
 
     # Load sentiment data
     sentiment_data = read_csv(full_path + "_sentiments.csv", header=0, squeeze=True)
 
-    # Convert sentiment data to np.array
+    # Convert sentiment data to `np.ndarray`
     sentiment_arr = sentiment_data.values[::-1]
 
     # Fill in missing values for sentiment data
     sentiment_arr_new = sentiment_arr.copy()
 
     i = 0
-    first_date = sentiment_arr_new[0][0]  # The literal first date
+    first_date = sentiment_arr_new[0][0]  # The first date of the sentiment data
 
     while i < sentiment_arr_new.shape[0] - 1:
         # Obtain current date and next date
@@ -67,7 +72,7 @@ def obtain_training_data(stock_directory: str, stock_symbol: str):
             # Estimate the sentiment increase/decrease in that period using linear fitting
             difference_per_day = (sentiment_arr_new[i + 1][1] - sentiment_arr_new[i][1]) / days_difference
 
-            # Use that value to "continue" the missing data
+            # Use that value to fill in the missing data
             for day in range(1, days_difference):
                 sentiment_arr_new = np.insert(sentiment_arr_new, i + day, [
                     datetime.datetime.strftime(curr_date + datetime.timedelta(days=day), "%Y-%m-%d"),
@@ -76,135 +81,148 @@ def obtain_training_data(stock_directory: str, stock_symbol: str):
             i += days_difference - 1
         i += 1
 
-    # Flip the array around
+    # Reverse the array
     sentiment_arr = sentiment_arr_new[:-1]
 
-    # Fill in missing values for stock data
-    stock_arr_new = list(stock_arr)
+    # Fill in missing values for OHLCV data
+    ohlcv_arr_new = list(ohlcv_arr)
 
     i = 0
     first_date_processed = datetime.datetime.strptime(first_date, "%Y-%m-%d")
     first_surpassed_index = -1
 
-    while i < len(stock_arr_new[:-1]):
-        curr_date = datetime.datetime.strptime(stock_arr_new[i][0], "%Y-%m-%d")
+    while i < len(ohlcv_arr_new[:-1]):
+        curr_date = datetime.datetime.strptime(ohlcv_arr_new[i][0], "%Y-%m-%d")
 
         if curr_date >= first_date_processed:
             if first_surpassed_index == -1:
                 first_surpassed_index = i
 
-            next_date = datetime.datetime.strptime(stock_arr_new[i + 1][0], "%Y-%m-%d")
+            next_date = datetime.datetime.strptime(ohlcv_arr_new[i + 1][0], "%Y-%m-%d")
 
             if (next_date - curr_date).days > 1:  # If it is more than 1 day
-                # Get the days difference
+                # Calculate how many days differ between entries
                 days_difference = int((next_date - curr_date).days)
 
                 # Calculate differences
-                difference_open = (stock_arr_new[i + 1][1] - stock_arr_new[i][1]) / days_difference
-                difference_high = (stock_arr_new[i + 1][2] - stock_arr_new[i][2]) / days_difference
-                difference_low = (stock_arr_new[i + 1][3] - stock_arr_new[i][3]) / days_difference
-                difference_close = (stock_arr_new[i + 1][4] - stock_arr_new[i][4]) / days_difference
-                difference_volume = (stock_arr_new[i + 1][5] - stock_arr_new[i][5]) / days_difference
+                difference_open = (ohlcv_arr_new[i + 1][1] - ohlcv_arr_new[i][1]) / days_difference
+                difference_high = (ohlcv_arr_new[i + 1][2] - ohlcv_arr_new[i][2]) / days_difference
+                difference_low = (ohlcv_arr_new[i + 1][3] - ohlcv_arr_new[i][3]) / days_difference
+                difference_close = (ohlcv_arr_new[i + 1][4] - ohlcv_arr_new[i][4]) / days_difference
+                difference_volume = (ohlcv_arr_new[i + 1][5] - ohlcv_arr_new[i][5]) / days_difference
 
-                # Use the values to "continue" the missing data
+                # Use the values to fill in the missing data
                 for day in range(1, days_difference):
-                    stock_arr_new.insert(i + day,
+                    ohlcv_arr_new.insert(i + day,
                                          [datetime.datetime.strftime(curr_date + datetime.timedelta(days=day),
                                                                      "%Y-%m-%d"),
-                                          stock_arr_new[i][1] + day * difference_open,
-                                          stock_arr_new[i][2] + day * difference_high,
-                                          stock_arr_new[i][3] + day * difference_low,
-                                          stock_arr_new[i][4] + day * difference_close,
-                                          int(stock_arr_new[i][5] + day * difference_volume)])
+                                          ohlcv_arr_new[i][1] + day * difference_open,
+                                          ohlcv_arr_new[i][2] + day * difference_high,
+                                          ohlcv_arr_new[i][3] + day * difference_low,
+                                          ohlcv_arr_new[i][4] + day * difference_close,
+                                          int(ohlcv_arr_new[i][5] + day * difference_volume)])
 
                 i += days_difference - 1
         i += 1
 
-    stock_arr = np.array(stock_arr_new[first_surpassed_index:-1], dtype=object)
+    # Leave only relevant values
+    ohlcv_arr = np.array(ohlcv_arr_new[first_surpassed_index:-1], dtype=object)
 
-    # Make both sentiment and stock values start on the same day
-    if sentiment_arr[0][0] != stock_arr[0][0]:
-        if sentiment_arr[0][0] < stock_arr[0][0]:  # If smaller
+    # Make both sentiment and OHLCV values start on the same day
+    if sentiment_arr[0][0] != ohlcv_arr[0][0]:
+        if sentiment_arr[0][0] < ohlcv_arr[0][0]:  # If smaller
             while True:
                 sentiment_arr = np.delete(sentiment_arr, 0, axis=0)
 
-                if sentiment_arr[0][0] == stock_arr[0][0]:
+                if sentiment_arr[0][0] == ohlcv_arr[0][0]:
                     break
 
-        else:  # If larger
+        else:
             while True:
-                stock_arr = np.delete(stock_arr, 0, axis=0)
+                ohlcv_arr = np.delete(ohlcv_arr, 0, axis=0)
 
-                if sentiment_arr[0][0] == stock_arr[0][0]:
+                if sentiment_arr[0][0] == ohlcv_arr[0][0]:
                     break
 
-    # Make both end on same day
-    if sentiment_arr[-1][0] != stock_arr[-1][0]:
-        if sentiment_arr[-1][0] < stock_arr[-1][0]:
+    # Make both sentiment and OHLCV values end on same day
+    if sentiment_arr[-1][0] != ohlcv_arr[-1][0]:
+        if sentiment_arr[-1][0] < ohlcv_arr[-1][0]:
             while True:
-                stock_arr = np.delete(stock_arr, stock_arr.shape[0] - 1, axis=0)
-                if sentiment_arr[sentiment_arr.shape[0] - 1][0] == stock_arr[stock_arr.shape[0] - 1][0]:
+                ohlcv_arr = np.delete(ohlcv_arr, ohlcv_arr.shape[0] - 1, axis=0)
+                if sentiment_arr[sentiment_arr.shape[0] - 1][0] == ohlcv_arr[ohlcv_arr.shape[0] - 1][0]:
                     break
 
-        else:  # Must be larger
+        else:
             while True:
                 sentiment_arr = np.delete(sentiment_arr, sentiment_arr.shape[0] - 1, axis=0)
-                if sentiment_arr[sentiment_arr.shape[0] - 1][0] == stock_arr[stock_arr.shape[0] - 1][0]:
+                if sentiment_arr[sentiment_arr.shape[0] - 1][0] == ohlcv_arr[ohlcv_arr.shape[0] - 1][0]:
                     break
 
-    # Join the two separate arrays into one single array
+    # Merge both arrays into a single list
     data_arr = []
-    for i in range(stock_arr.shape[0]):  # Should have the same shape
-        # The format is: DATE, OPEN, HIGH, LOW, CLOSE, SENTIMENT_VAL, VOLUME
-        data_arr.append([stock_arr[i][0],
-                         stock_arr[i][1],
-                         stock_arr[i][2],
-                         stock_arr[i][3],
-                         stock_arr[i][4],
-                         sentiment_arr[i][1],
-                         stock_arr[i][5]])
 
+    for i in range(ohlcv_arr.shape[0]):  # Should have the same shape
+        # The format for `data_arr` is: [DATE, OPEN, HIGH, LOW, CLOSE, SENTIMENT, VOLUME]
+        data_arr.append([ohlcv_arr[i][0],
+                         ohlcv_arr[i][1],
+                         ohlcv_arr[i][2],
+                         ohlcv_arr[i][3],
+                         ohlcv_arr[i][4],
+                         sentiment_arr[i][1],
+                         ohlcv_arr[i][5]])
+
+    # Return `data_arr` as a `np.ndarray`
     return np.array(data_arr, dtype=object)
 
 
-def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int = 10):
+def process_data(data_directory, stock_symbol, entries_taking_avg=10):
     """
-    Preprocesses data from the directory for training.
+    Processes the dataframe generated by `obtain_data`
 
-    Keyword Arguments:
-     - stock_directory, str: Directory which contains the stock values file and the sentiment scores file
-     - stock_symbol, str: The stock symbol
-     - entries_taking_avg, int: The number of entries to consider when taking the average
+    Args:
+        data_directory (str): The directory which contains the OHLCV data file (a.k.a. stocks
+                              file) and the sentiment data file.
+
+        stock_symbol (str): The stock symbol. Also known as the stock ticker.
+                            For example, "AAPL", "BA" and "S63.SI" are all valid stock symbols.
+
+        entries_taking_avg (int): The number of entries to consider when taking the average.
+                                  (Default = 10)
+
+                                  This parameter is used for the `moving_average` function defined
+                                  in `miscUtils.py`. For its use case, consult that file.
 
     Returns:
-    - pandas.DataFrame which organises the relevant values into columns
+        pd.DataFrame: The processed dataframe, which can be used for training/testing.
+
     """
 
     # Get the data
-    stock_data = obtain_training_data(stock_directory, stock_symbol)
+    stock_data = obtain_data(data_directory, stock_symbol)
 
-    # Take moving average of both the stock values and the sentiment values
-    averaged = []
+    # Take the moving average of both the OHLCV values and the sentiment values
+    averaged_values = []
 
-    for i in range(entries_taking_avg, len(stock_data)):  # Remove `entries_taking_avg` entries from the datalist
-        averaged.append([moving_average(stock_data, 1, i, entries_taking_avg),
-                         moving_average(stock_data, 2, i, entries_taking_avg),
-                         moving_average(stock_data, 3, i, entries_taking_avg),
-                         moving_average(stock_data, 4, i, entries_taking_avg),
-                         moving_average(stock_data, 5, i, entries_taking_avg),
-                         moving_average(stock_data, 6, i, entries_taking_avg)])
+    for i in range(entries_taking_avg, len(stock_data)):  # Remove `entries_taking_avg` entries from the list
+        averaged_values.append([moving_average(stock_data, 1, i, entries_taking_avg),
+                                moving_average(stock_data, 2, i, entries_taking_avg),
+                                moving_average(stock_data, 3, i, entries_taking_avg),
+                                moving_average(stock_data, 4, i, entries_taking_avg),
+                                moving_average(stock_data, 5, i, entries_taking_avg),
+                                moving_average(stock_data, 6, i, entries_taking_avg)])
 
-    # Convert `averaged` to a pandas dataframe
+    # Convert `averaged_values` to a dictionary
     df_dict = {"Open": [], "High": [], "Low": [], "Close": [], "Sentiment": [], "Volume": []}
 
-    for i in range(len(averaged)):
-        df_dict["Open"].append(averaged[i][0])
-        df_dict["High"].append(averaged[i][1])
-        df_dict["Low"].append(averaged[i][2])
-        df_dict["Close"].append(averaged[i][3])
-        df_dict["Sentiment"].append(averaged[i][4])
-        df_dict["Volume"].append(int(averaged[i][5]))  # We can't have partial stocks!
+    for i in range(len(averaged_values)):
+        df_dict["Open"].append(averaged_values[i][0])
+        df_dict["High"].append(averaged_values[i][1])
+        df_dict["Low"].append(averaged_values[i][2])
+        df_dict["Close"].append(averaged_values[i][3])
+        df_dict["Sentiment"].append(averaged_values[i][4])
+        df_dict["Volume"].append(int(averaged_values[i][5]))
 
+    # Convert the dictionary to a `pd.DataFrame`
     df = pd.DataFrame(df_dict)
 
     return df
@@ -212,26 +230,27 @@ def prep_data(stock_directory: str, stock_symbol: str, entries_taking_avg: int =
 
 def add_technical_indicators(df):
     """
-    A function to add the indicators to the dataframe.
-
-    Keyword arguments:
-    - df, pd.DataFrame: The data dataframe which was created
+    Args:
+        df (pd.DataFrame): The processed dataframe returned by `process_data`.
 
     Returns:
-    - Updated dataframe with the indicators
+        pd.DataFrame: The updated dataframe with the technical indicators inside.
 
-    NOTE: Thanks for Adam King for this compilation of technical indicators!
+    Acknowledgements:
+        - Thanks for Adam King for this compilation of technical indicators!
           The original file and code can be found here:
           https://github.com/notadamking/RLTrader/blob/e5b83b1571f9fcfa6a67a2a810222f1f1751996c/util/indicators.py
+
     """
-    # Momentum indicators
+
+    # Add momentum indicators
     df["AO"] = ta.ao(df["High"], df["Low"])
     df["MFI"] = ta.money_flow_index(df["High"], df["Low"], df["Close"], df["Volume"])
     df["RSI"] = ta.rsi(df["Close"])
     df["TSI"] = ta.tsi(df["Close"])
     df["UO"] = ta.uo(df["High"], df["Low"], df["Close"])
 
-    # Trend indicators
+    # Add trend indicators
     df["Aroon_up"] = ta.aroon_up(df["Close"])
     df["Aroon_down"] = ta.aroon_down(df["Close"])
     df["Aroon_ind"] = (df["Aroon_up"] - df["Aroon_down"])
@@ -247,7 +266,7 @@ def add_technical_indicators(df):
     df["Vortex_neg"] = ta.vortex_indicator_neg(df["High"], df["Low"], df["Close"])
     df["Vortex_diff"] = abs(df["Vortex_pos"] - df["Vortex_neg"])
 
-    # Volatility indicators
+    # Add volatility indicators
     df["BBH"] = ta.bollinger_hband(df["Close"])
     df["BBL"] = ta.bollinger_lband(df["Close"])
     df["BBM"] = ta.bollinger_mavg(df["Close"])
@@ -267,12 +286,12 @@ def add_technical_indicators(df):
     df["OBV"] = ta.on_balance_volume(df["Close"], df["Volume"])
     df["VPT"] = ta.volume_price_trend(df["Close"], df["Volume"])
 
-    # Other indicators
+    # Add miscellaneous indicators
     df["DR"] = ta.daily_return(df["Close"])
     df["DLR"] = ta.daily_log_return(df["Close"])
 
-    # Fill in nan values
-    df.fillna(method="bfill", inplace=True)  # First try bfill
+    # Fill in NaN values
+    df.fillna(method="bfill", inplace=True)  # First try `bfill`
     df.fillna(value=0, inplace=True)  # Then replace the rest of the NANs with 0s
 
     return df
@@ -280,8 +299,8 @@ def add_technical_indicators(df):
 
 # DEBUG CODE
 if __name__ == "__main__":
-    print(obtain_training_data("../trainingData/", "FB"))
-    origDF = prep_data("../trainingData/", "FB")
+    print(obtain_data("../trainingData/", "FB"))
+    origDF = process_data("../trainingData/", "FB")
     print(origDF)
 
     modifiedDF = add_technical_indicators(origDF)
