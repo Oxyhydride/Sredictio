@@ -32,6 +32,7 @@ For more on the model and its format, refer to [here](https://stable-baselines.r
 - 2019-12-10: **Version 0.1.0: Initial Update** was released.
 - 2019-12-10: **Version 0.1.1** was released. It was an update to "[tidy] up the files in the repository".
 - 2019-12-11: **Version 0.1.2** was released. It was "a hotfix for the update to `yahoo-fin`, which... [broke] the stock obtaining mechanism of Sredictio."
+- 2019-12-20: **Version 0.2.0: The Quality of Life Update** was released.
 
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
