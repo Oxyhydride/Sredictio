@@ -16,22 +16,22 @@ The stock data was obtained from [Yahoo Finance](https://finance.yahoo.com/)'s h
 The sentiment data was obtained by using NLTK's VADER sentiment analysis tool (for what it can do, go [here](https://medium.com/analytics-vidhya/simplifying-social-media-sentiment-analysis-using-vader-in-python-f9e6ec6fc52f)) against the Straits Times' articles on a particular company.
 
 ## What's under `Extra Resources`?
-The `Extra Resources` folder currently contains two subdirectories: `Statistical Analysis` and `Field Tests`.
+The `Extra Resources` folder currently contains three spreadsheets. 
 
-### Statistical Analysis
-Under `Statistical Analysis`, a spreadsheet, `Sredictio Data Tracking.xlsx`, can be found. This spreadsheet is used to document all the tests done on the data and on the A2C agent.
-
-The spreadsheet currently contains 4 previous tests on the data and on the model. You can find the tests' codes under `Extra Resources/Statistical Analysis`.
-
-### Field Tests
-The Sredictio Field Tests are currently ongoing. Four stocks, Facebook (`FB`), Google/Alphabet Inc. (`GOOGL`), Boeing (`BA`) and ST Engineering (`S63.SI`), are being used as benchmarks for the A2C agent.
-
-The spreadsheet, `Sredictio Field Tests.xlsx`, documents the field tests' progress.
+- `Sredictio Data Tracking.xlsx` is used to document all the tests done on the data and on the A2C agent. The spreadsheet currently contains 4 previous tests on the data and on the model.
+- `Sredictio Field Tests.xlsx` documents the previous field tests. In the last field test, four stocks, Facebook (`FB`), Google/Alphabet Inc. (`GOOGL`), Boeing (`BA`) and ST Engineering (`S63.SI`), were used as benchmarks for the A2C agent.
 
 ## Where's the model stored?
-The model is saved as a `.zip` file in the main directory. It currently is named `Model_LBW-20_NOI-100000.zip`.
+The latest model (and previous models) can be found under the `Models` directory.
+
+The model is a `.zip` file, containing the parameters of the model.
 
 For more on the model and its format, refer to [here](https://stable-baselines.readthedocs.io/en/master/guide/save_format.html) for more info.
+
+## Update Log
+- 2019-12-10: **Version 0.1.0: Initial Update** was released.
+- 2019-12-10: **Version 0.1.1** was released. It was an update to "[tidy] up the files in the repository".
+- 2019-12-11: **Version 0.1.2** was released. It was "a hotfix for the update to `yahoo-fin`, which... [broke] the stock obtaining mechanism of Sredictio."
 
 ## Credits
 - Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
