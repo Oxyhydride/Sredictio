@@ -211,12 +211,11 @@ except IndexError:
     # So leave the list as 0's
     pass
 
-# Reverse all arrays, and cast lists to `np.ndarray`
-ohlcvData = ohlcvData[::-1]
-sentimentData = np.array(sentimentData[::-1])
-ownedData = np.array(ownedData[::-1])
+# Cast lists to `np.ndarray`
+sentimentData = np.array(sentimentData)
+ownedData = np.array(ownedData)
 
-# Make a dataframe with the `stockData` and `sentimentData` arrays
+# Make a dataframe with the `ohlcvData` and `sentimentData` arrays
 dataframe = pd.DataFrame({"Open": ohlcvData[:, 0], "High": ohlcvData[:, 1], "Low": ohlcvData[:, 2],
                           "Close": ohlcvData[:, 3], "Volume": ohlcvData[:, 4], "Sentiment": sentimentData})
 

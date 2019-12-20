@@ -2,7 +2,7 @@
 stockUtils.py
 
 Created on 2019-12-11
-Updated on 2019-12-16
+Updated on 2019-12-20
 
 Copyright Ryan Kan 2019
 
@@ -21,10 +21,10 @@ from requests.exceptions import HTTPError
 
 
 # FUNCTIONS
-def get_stock_data(stock_symbol, start_date, end_date, timeout=3, retry_count=5, retry_delay=1.0, verbose=True,
+def get_ohlcv_data(stock_symbol, start_date, end_date, timeout=3, retry_count=5, retry_delay=1.0, verbose=True,
                    save_as_csv=False, file_location=None):
     """
-    Obtains the historical data of a stock from Yahoo Finance.
+    Obtains the OHLCV data of a stock from Yahoo Finance.
 
     Args:
         stock_symbol (str): Stock symbol. Also known as the stock ticker.
@@ -136,7 +136,7 @@ def get_stock_data(stock_symbol, start_date, end_date, timeout=3, retry_count=5,
         stock_df.to_csv(file_location, index=False)
 
 
-def process_stock_data(df):
+def process_ohlcv_data(df):
     """
     Processes converts the scraped dataframe into a more useful dataframe
 
@@ -178,12 +178,12 @@ if __name__ == "__main__":
     endDate = input("Please enter the ending date in the form YYYY-MM-DD:   ")
 
     # Get the stock data
-    stockDF = get_stock_data(stockSymbol, startDate, endDate, save_as_csv=outputAsFile,
+    ohlcvDF = get_ohlcv_data(stockSymbol, startDate, endDate, save_as_csv=outputAsFile,
                              file_location="../../Training Data/" + stockSymbol + "/" + stockSymbol + "_stocks.csv")
 
     # Output generated dataframe
     if not outputAsFile:
-        print(stockDF)
+        print(ohlcvDF)
 
     else:
         print("Done!")

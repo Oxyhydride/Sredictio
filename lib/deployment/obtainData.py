@@ -17,7 +17,7 @@ import pandas as pd
 
 from lib.utils.miscUtils import natural_sort
 from lib.utils.sentimentUtils import get_sentiment_data
-from lib.utils.stockUtils import get_stock_data, process_stock_data
+from lib.utils.stockUtils import get_ohlcv_data, process_ohlcv_data
 
 
 # FUNCTIONS
@@ -124,13 +124,13 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
                                                         " back window. "
 
     # Get the historical OHLCV data
-    ohlcv_dataframe = get_stock_data(stock_symbol,
+    ohlcv_dataframe = get_ohlcv_data(stock_symbol,
                                      (datetime.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
                                      datetime.today().strftime("%Y-%m-%d"),
                                      retry_count=retry_count)
 
     # Process the OHLCV data as a pandas dataframe
-    ohlcv_dataframe = process_stock_data(ohlcv_dataframe)
+    ohlcv_dataframe = process_ohlcv_data(ohlcv_dataframe)
 
     # Get the sentiment data
     print(f"Obtaining {stock_name} sentiment data...")
@@ -156,11 +156,11 @@ if __name__ == "__main__":
     lookbackWindow = get_lookback_window(get_model_file("../../Models"))
 
     # Next, get the needed data
-    stockDataframe, sentimentDataframe, ownedStockArray = get_obs_data("Facebook", "FB", "../../Stock History.csv",
+    ohlcvDataframe, sentimentDataframe, ownedStockArray = get_obs_data("Facebook", "FB", "../../Stock History.csv",
                                                                        lookbackWindow)
 
     # Output them
     print(lookbackWindow)
-    print(stockDataframe)
+    print(ohlcvDataframe)
     print(sentimentDataframe)
     print(ownedStockArray)

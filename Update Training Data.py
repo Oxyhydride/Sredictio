@@ -16,7 +16,7 @@ from tqdm import trange
 
 from lib.utils.miscUtils import natural_sort
 from lib.utils.sentimentUtils import get_sentiment_data
-from lib.utils.stockUtils import get_stock_data
+from lib.utils.stockUtils import get_ohlcv_data
 
 # INPUT
 TRAINING_DIR = "./Training Data/"
@@ -97,7 +97,7 @@ for i in iterable:
         print(f" UPDATING '{symbol}' TRAINING DATA ".center(80, "-"))
 
     # Update the OHLCV data
-    get_stock_data(symbol, START_DATE, END_DATE, save_as_csv=True, verbose=(VERBOSE_LEVEL != 0),
+    get_ohlcv_data(symbol, START_DATE, END_DATE, save_as_csv=True, verbose=(VERBOSE_LEVEL != 0),
                    file_location=TRAINING_DIR + symbol + "/" + symbol + "_stocks.csv")
 
     # Update the sentiment data
