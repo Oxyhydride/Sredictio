@@ -2,7 +2,7 @@
 Main.py
 
 Created on 2019-12-04
-Updated on 2019-12-17
+Updated on 2019-12-20
 
 Copyright Ryan Kan 2019
 
@@ -18,7 +18,6 @@ import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
 from stable_baselines import A2C
-from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 from lib.deployment.obtainData import get_model_file, get_lookback_window, get_obs_data
 from lib.utils.dataUtils import add_technical_indicators
@@ -65,48 +64,65 @@ modelFile = get_model_file(MODEL_DIRECTORY)
 lookbackWindow = get_lookback_window(modelFile)
 
 # Get the data for the observation array
-stockDataframe, sentimentDataframe, ownedStockArr = get_obs_data(STOCK_NAME, STOCK_SYMBOL, STOCK_HISTORY_FILE,
+ohlcvDataframe, sentimentDataframe, ownedStockArr = get_obs_data(STOCK_NAME, STOCK_SYMBOL, STOCK_HISTORY_FILE,
                                                                  lookbackWindow, days_to_scrape=DAYS_TO_SCRAPE,
                                                                  retry_count=RETRY_COUNT)
 
 # PREPROCESSING
 # 1. OHLCV data
-ohlcvData = np.array([[-2] * 5] * lookbackWindow, dtype=np.float64)  # OHLCV values, using -2 as a placeholder
+ohlcvData = np.array([[-2] * 5] * lookbackWindow, dtype=float)  # OHLCV values, using -2 as a placeholder
 ohlcvDataIndex = 0  # The index for the `ohlcvData` array
 dataframeIndex = 0
 
 while True:
     # Find out what the current entry of the stock data is
-    dataframeDate = stockDataframe.index[-(dataframeIndex + 1)].date()  # This is the current date
+    dataframeDate = ohlcvDataframe.index[-(dataframeIndex + 1)].date()  # This is the current date
 
     # If the `dataframeDate` is not current date, then find out how many days differ
-    if dataframeDate != datetime.date.today() - datetime.timedelta(days=ohlcvDataIndex):
-        daysDifference = (datetime.date.today() - datetime.timedelta(days=ohlcvDataIndex) - dataframeDate).days
+    if dataframeDate != datetime.date.today() - datetime.timedelta(days=(ohlcvDataIndex + 1)):
+        daysDifference = (datetime.date.today() - datetime.timedelta(days=(ohlcvDataIndex + 1)) - dataframeDate).days
 
-        # TODO(Ryan-Kan): REPLACE CODE BELOW WITH LINEAR FIT DATA
-        # Get SARIMAX values
-        sarimaxValues = [[-2] * daysDifference] * 5
+        # Fill in data linearly
+        generatedValues = []
 
-        for i in range(5):  # First 5 columns
-            currDataSeries = stockDataframe.iloc[:, i]
-            forecastModel = SARIMAX(np.array(currDataSeries), enforce_stationarity=False)  # Only want OHLC values
-            modelFit = forecastModel.fit(method='bfgs', disp=False)
-            forecast = modelFit.forecast(steps=daysDifference)  # Definitely an `np.ndarray`
+        for i in range(5):  # The 5 columns
+            diffVal = (ohlcvDataframe.iloc[-dataframeIndex, i] - ohlcvDataframe.iloc[-(dataframeIndex + 1), i]) / (
+                        daysDifference + 1)
 
-            assert isinstance(forecast, np.ndarray), "This error will never appear, this is just to pacify the IDEs!"
+            temp = []  # Will be used to place the values which have been linearly fit
+            for j in range(daysDifference):
+                # Fill in this column's data linearly
+                generatedValue = ohlcvDataframe.iloc[-dataframeIndex, i] - diffVal * (j + 1)
 
-            sarimaxValues[i] = list(forecast)
+                # Make sure that the Volume is an integer
+                if i == 4:  # Volume column
+                    generatedValue = int(generatedValue)
 
-        # Fill in SARIMAX values
-        for i in range(ohlcvDataIndex, min(ohlcvDataIndex + daysDifference, lookbackWindow)):
-            for j in range(5):  # 5 columns of data, so iterate 5 times
-                ohlcvData[i][j] = sarimaxValues[j][i - ohlcvDataIndex]
+                # Append this generated value to `temp`
+                temp.append(generatedValue)
 
-        ohlcvDataIndex += daysDifference
+            # Append the `temp` list to the `generatedValues` list
+            generatedValues.append(temp)
+
+        # Only keep the relevant values
+        if ohlcvDataIndex + len(generatedValues[0]) > lookbackWindow:  # Too many entries
+            # First change `generatedValues` into a `np.ndarray`
+            generatedValues = np.array(generatedValues)
+
+            # Then restrict the `generatedValues` array
+            generatedValues = generatedValues[:, :lookbackWindow - ohlcvDataIndex]
+
+            # Lastly, convert the array back into a list
+            generatedValues = list(generatedValues.tolist())
+
+        # Fill in the values
+        for i in range(5):  # 5 columns of data, so iterate 5 times
+            for j in range(len(generatedValues[0])):  # This is how many entries to fill in
+                ohlcvData[j + ohlcvDataIndex][i] = generatedValues[i][j]
 
     else:
         # Fill in entry with the current day's OHLCV data
-        ohlcvData[ohlcvDataIndex] = list(stockDataframe.iloc[-(dataframeIndex + 1)])[:5]  # We want OHLCV values only
+        ohlcvData[ohlcvDataIndex] = list(ohlcvDataframe.iloc[-(dataframeIndex + 1)])  # We want OHLCV values only
         dataframeIndex += 1
 
     # Check if there are any entries left unfilled

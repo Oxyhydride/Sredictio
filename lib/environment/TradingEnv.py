@@ -396,7 +396,7 @@ class TradingEnv(gym.Env):
                         If not, then the environment will not render anything.
 
         TODO:
-            - (Ryan-Kan) Update rendering function to work with command-line execution
+            - (Ryan-Kan, 0.2.1) Update rendering function to work with command-line execution
 
         """
 

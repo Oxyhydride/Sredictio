@@ -2,7 +2,7 @@
 obtainData.py
 
 Created on 2019-12-12
-Updated on 2019-12-14
+Updated on 2019-12-20
 
 Copyright Ryan Kan 2019
 
@@ -124,13 +124,13 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
                                                         " back window. "
 
     # Get the historical OHLCV data
-    historical_data = get_stock_data(stock_symbol,
+    ohlcv_dataframe = get_stock_data(stock_symbol,
                                      (datetime.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
                                      datetime.today().strftime("%Y-%m-%d"),
                                      retry_count=retry_count)
 
     # Process the OHLCV data as a pandas dataframe
-    stock_dataframe = process_stock_data(historical_data)
+    ohlcv_dataframe = process_stock_data(ohlcv_dataframe)
 
     # Get the sentiment data
     print(f"Obtaining {stock_name} sentiment data...")
@@ -147,7 +147,7 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
     print("Done!")
 
     # Return the obtained dataframes (and the np.ndarray)
-    return stock_dataframe, sentiment_dataframe, owned_stock_array
+    return ohlcv_dataframe, sentiment_dataframe, owned_stock_array
 
 
 # DEBUG CODE
