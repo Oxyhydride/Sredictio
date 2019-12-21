@@ -3,6 +3,12 @@
    Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
             reverse order, where the latest update is listed on top, and the earliest update is listed last.
 
+Update [LATEST]:
+- Updated `ISSUE_TEMPLATE.md` to be more grammatically sound.
+- Fixed Issue #5 "Incorrect Output for Current Day Stock Price".
+- Updated the Sredictio Update Plans.
+- Added the OCBC training data.
+
 Update 1576849721:
 - Added issue template `ISSUE_TEMPLATE.md`.
 

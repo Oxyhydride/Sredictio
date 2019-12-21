@@ -268,7 +268,7 @@ possibleAmounts = sorted(suggestedAmounts[bestAction])
 bestAmount = max(set(possibleAmounts), key=possibleAmounts.count)
 
 # Output the action & amount
-print(f"\nThe current stock price is at ${observation[3][-1]:.2f}")
+print(f"\nThe current stock price is at ${observation[3][0]:.2f}")
 if bestAction == "Hold":
     print("HOLD the stocks.")
 
