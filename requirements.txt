@@ -10,7 +10,6 @@ nltk
 optuna
 pandas
 requests
-requests_html
 seaborn
 sklearn
 tqdm
