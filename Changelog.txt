@@ -3,6 +3,14 @@
    Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
             reverse order, where the latest update is listed on top, and the earliest update is listed last.
 
+Update 1577096124:
+- Renamed `lib/deployment` to `lib/execution`.
+- Converted most `Main.py` code to functions.
+- Fixed a grammatical mistake in `Main.py`.
+- Updated `Update Sredictio.py`.
+  * Updated comments in `Update Sredictio.py`.
+  * With the update to `Main.py`, `Update Sredictio.py` was also updated accordingly.
+
 Update 1577071897:
 - Updated `Update Sredictio.py` to be more optimised.
 

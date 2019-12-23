@@ -6,7 +6,8 @@ Updated on 2019-12-20
 
 Copyright Ryan Kan 2019
 
-Description: A function which obtains the data needed for the full observation list.
+Description: A program which contains the functions needed to obtain the data needed to construct the observation
+             list.
 """
 
 # IMPORTS
