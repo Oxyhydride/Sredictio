@@ -3,14 +3,20 @@
    Only updates from 2019-12-10 onwards are recorded here. The others have been omitted. This log is also arranged in
             reverse order, where the latest update is listed on top, and the earliest update is listed last.
 
-Update 1577120518:
+Update 1577120960
+- Added one more goal for Version 0.3.0.
+- Updated `README.md` with the `Sredictio Update Plans.xlsx` document.
+- Changed the update name of 0.1.0 from "Initial Update" to "The Initial Update".
+- Removed the colon (":") symbol from update notes in the Sredictio Changelog.
+
+Update 1577120518
 - The `render` method of the `TrainingEnv` class now works as intended.
-- The dollar sign ($) has been added to the annotations of the `render` method.
+- The dollar sign ("$") has been added to the annotations of the `render` method.
 - Added `Bugtracker.txt`.
 - Rename `GUI Test` to `GUI Tests`.
 - Completed "Version 0.3.0: The GUI Update"'s Update Plan.
 
-Update 1577096124:
+Update 1577096124
 - Renamed `lib/deployment` to `lib/execution`.
 - Converted most `Main.py` code to functions.
 - Fixed a grammatical mistake in `Main.py`.
@@ -18,50 +24,50 @@ Update 1577096124:
   * Updated comments in `Update Sredictio.py`.
   * With the update to `Main.py`, `Update Sredictio.py` was also updated accordingly.
 
-Update 1577071897:
+Update 1577071897
 - Updated `Update Sredictio.py` to be more optimised.
 
-Update 1576986361:
+Update 1576986361
 - Added a Sredictio updating program, `Update Sredictio.py`.
 - Removed the `request_html` requirement.
 - Added the `VERSION` file, which contains the current version.
 
-Update 1576936377:
+Update 1576936377
 - Updated `ISSUE_TEMPLATE.md` to be more grammatically sound.
 - Fixed Issue #5 "Incorrect Output for Current Day Stock Price".
 - Updated the Sredictio Update Plans.
 - Added the OCBC training data.
 
-Update 1576849721:
+Update 1576849721
 - Added issue template `ISSUE_TEMPLATE.md`.
 
-Update 1576835794:
+Update 1576835794
 - Updated `README.md` to include the 0.2.0 update
 
-Update 1576835152:
+Update 1576835152
 - Updated `README.md` contents to be up to date with Version 0.2.0.
 - Renamed `Extra Resources` to `Extras`.
 
-Update 1576834259:
+Update 1576834259
 - Fixed incorrect observation array in `Main.py`.
 - Removed outdated code in `Extra Resources/Statistical Analysis`.
 - Renamed incorrect usage of `stockData` in all files.
 - Reorganised files in `Extra Resources`.
 
-Update 1576833340:
+Update 1576833340
 - Updated To-Do comments to have a version attached to it.
 - Changed `Main.py`'s OHLCV Data processing method.
 - Removed the `statsmodels` requirement from `requirements.txt`.
 - Renamed some variables in `obtainData.py`.
 
-Update 1576569335:
+Update 1576569335
 - Added the Sredictio Update Roadmap, under `Extra Resources/Update Plans`.
 - Removed redundant empty rows at the bottom of `Changelog.txt`.
 - Updated `Changelog.txt` format.
 - Added a file description to `Optimise.py`'s Argument Parser.
 - Optimised printing in `Update Training Data.py`.
 
-Update 1576566784:
+Update 1576566784
 - Updated ALL code to be PEP 8 (Style Guide for Python Code) and PEP 257 (Docstring Conventions) compliant
   * Removed trivial comments (e.g. If a code is `a += 1` the comment `# Increment by 1` has been removed)
   * Updated ambiguous comments (e.g. "find out how many days before it is" was updated to
@@ -78,27 +84,27 @@ Update 1576566784:
 - Reversed the change to "rename `dataUtils.py` to `trainingDataUtils.py`" as the functions inside it are all used to
   handle data processing. I.E. rename `trainingDataUtils.py` to `dataUtils.py` to match functionality of the program.
 
-Update 1576309748:
+Update 1576309748
 - Improved the file renaming system in `Train.py`
 - Renamed `env` to `environment`.
 - Updated action amount quantity from x/10 to x/5.
 - Reformatted print output in `Main.py`
 - Updated latest model to accommodate the environment update and the hyperparameters update.
 
-Update 1576307571:
+Update 1576307571
 - Made `Hyperparams.db` smaller in size to quicken hyperparameter loading.
 - Renamed `dataUtils.py` to `trainingDataUtils.py` to reduce ambigutity.
 
-Update 1576295654:
+Update 1576295654
 - Updated `Hyperparams.db` with new hyperparameters
 - Updated `Sredictio Field Tests.xlsx` with 2019-12-13 data, hence completing the field tests.
 
-Update 1576247888:
+Update 1576247888
 - Prettified `Changelog.txt` (again)
 - Fixed incorrect logical statement in `stockUtils.py`
 - Increased retry count from 3 to 5 in `obtainData.py`
 
-Update 1576230918:
+Update 1576230918
 - Added `Update Training Data.py` to make updating the training data easier.
 - Consequently, all training data in the `Training Data` directory have been replaced.
 - The stock `BTC` has been renamed to `BTC-USD` to fit the "correct" stock symbol.
@@ -107,12 +113,12 @@ Update 1576230918:
   `get_stock_data` instead.
 - `Main.py` and `obtainData.py` have been updated to accommodate the changes.
 
-Update 1576220523:
+Update 1576220523
 - Prepared `stockUtils.py` for an update of the Stock Data Downloading Algorithm.
 - Updated `sentimentUtils.py` to allow direct downloading of sentiment data to the `Training Data` directory.
 - `Changelog.txt` was updated to be more "pleasing to the eyes".
 
-Update 1576164281:
+Update 1576164281
 - Updated the `GUI Test` directory with more GUI tests.
 - Started moving `Main.py` code into the `lib/deployment` directory.
 - Added a "Stock Not Found" error to `stockUtils.py`

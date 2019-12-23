@@ -20,6 +20,7 @@ The `Extra Resources` folder currently contains three spreadsheets.
 
 - `Sredictio Data Tracking.xlsx` is used to document all the tests done on the data and on the A2C agent. The spreadsheet currently contains 4 previous tests on the data and on the model.
 - `Sredictio Field Tests.xlsx` documents the previous field tests. In the last field test, four stocks, Facebook (`FB`), Google/Alphabet Inc. (`GOOGL`), Boeing (`BA`) and ST Engineering (`S63.SI`), were used as benchmarks for the A2C agent.
+- `Sredictio Update Plans.xlsx` is like a roadmap for Sredictio. It contains all past and future update plans for this Sredictio.
 
 ## Where's the model stored?
 The latest model (and previous models) can be found under the `Models` directory.
@@ -29,15 +30,15 @@ The model is a `.zip` file, containing the parameters of the model.
 For more on the model and its format, refer to [here](https://stable-baselines.readthedocs.io/en/master/guide/save_format.html) for more info.
 
 ## Update Log
-- 2019-12-10: **Version 0.1.0: Initial Update** was released.
+- 2019-12-10: **Version 0.1.0: The Initial Update** was released.
 - 2019-12-10: **Version 0.1.1** was released. It was an update to "[tidy] up the files in the repository".
 - 2019-12-11: **Version 0.1.2** was released. It was "a hotfix for the update to `yahoo-fin`, which... [broke] the stock obtaining mechanism of Sredictio."
 - 2019-12-20: **Version 0.2.0: The Quality of Life Update** was released.
 
 ## Credits
-- Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
-- Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
-- Cover image taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
+- Sredictio's Stock data taken from [Yahoo Finance](https://finance.yahoo.com/).
+- Sredictio's Sentiment data scraped from [Straits Times](https://www.straitstimes.com/) articles.
+- The cover image was taken from [pensoft.co.ke](https://www.pensoft.co.ke/stocks-backgrounds-ultra-hd/).
 
 ## Acknowledgements
-- Thanks to OpenAI and DeepMind for sharing these open-source Deep Learning resources to us!
+We would like to thank OpenAI and DeepMind for sharing these open-source Deep Learning resources to us. Without them, AI research could be way behind our time.
