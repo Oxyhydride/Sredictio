@@ -2,9 +2,10 @@
 **/.idea/
 **/.ipynb_checkpoints/
 /tensorboard/*
+Extras/Code Obfuscation/*
 
 # Files to be excluded
 **/.DS_Store
-~$Sredictio Data Tracking.xlsx
-Extras/Field Tests/~$Sredictio Field Tests.xlsx
-Extras/Update Plans/~$Sredictio Update Plans.xlsx
+Extras/~$Sredictio Data Tracking.xlsx
+Extras/~$Sredictio Field Tests.xlsx
+Extras/~$Sredictio Update Plans.xlsx
