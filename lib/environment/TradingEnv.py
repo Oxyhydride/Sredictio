@@ -2,7 +2,7 @@
 TradingEnv.py
 
 Created on 2019-06-03
-Updated on 2019-12-15
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -15,8 +15,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 
-from lib.utils.graphingUtils import setup_graph
 from lib.utils.dataUtils import add_technical_indicators
+from lib.utils.graphingUtils import setup_graph
 
 
 # CLASSES
@@ -219,7 +219,7 @@ class TradingEnv(gym.Env):
         # Clear current figure
         plt.clf()
 
-        # Print initial investment amount (if needed)
+        # Print the initial investment amount (if needed)
         if print_init_invest_amount:
             print(f"The initial investment amount is ${self.init_invest:.2f}")
 
@@ -381,7 +381,7 @@ class TradingEnv(gym.Env):
         # Return observation list
         return obs
 
-    def render(self, mode="human"):
+    def render(self, mode="human", fig_res=(600, 480), dpi=60):
         """
         Renders the trading environment.
 
@@ -395,21 +395,29 @@ class TradingEnv(gym.Env):
 
                         If not, then the environment will not render anything.
 
-        TODO:
-            - (Ryan-Kan, 0.2.1) Update rendering function to work with command-line execution
+            fig_res (Tuple[int, int]): The resolution of the plotted graph. (Default = (600, 480))
+
+                                       The `fig_res` will be a tuple in the form (W, H), where W is
+                                       the width while H is the height.
+
+            dpi (int): The DPI (aka Dots Per Inch) for the plot. (Default = 40)
 
         """
 
         if mode == "human":
+            # Calculate `fig_size`
+            fig_size = (fig_res[0] / dpi, fig_res[1] / dpi)
+
+            # Check if first step
             if self.cur_step == self.df_start_index + 1:
                 # Render setup
                 setup_graph()
 
                 # Set up axes
-                self.fig, (self.net_worth_ax, self.stock_ax) = plt.subplots(2, sharex="all")
+                self.fig, (self.net_worth_ax, self.stock_ax) = plt.subplots(2, sharex="all", figsize=fig_size, dpi=dpi)
 
                 # Update axes titles
-                self.net_worth_ax.title.set_text("Net Worth")
+                self.net_worth_ax.title.set_text("Agent's Net Worth")
                 self.stock_ax.title.set_text("Stock Price")
 
                 # Set the scales
@@ -434,12 +442,12 @@ class TradingEnv(gym.Env):
             self.stock_line.set_ydata(self.full_data_df["Close"][self.df_start_index:self.cur_step])
 
             # Annotate the current net worth of the agent
-            self.net_worth_annotation.set_text("{0:.2f}".format(self.net_worths[-1]))
+            self.net_worth_annotation.set_text("${0:.2f}".format(self.net_worths[-1]))
             self.net_worth_annotation.set_x(self.cur_step)
             self.net_worth_annotation.set_y(self.net_worths[-1])
 
             # Annotate the current stock price
-            self.stock_annotation.set_text("{0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
+            self.stock_annotation.set_text("${0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
             self.stock_annotation.set_x(self.cur_step)
             self.stock_annotation.set_y(self.full_data_df["Close"][self.cur_step])
 
@@ -456,19 +464,19 @@ class TradingEnv(gym.Env):
             self.stock_ax.set_ylim([line_min_stock - adjustment_stock, line_max_stock + adjustment_stock])
 
             # Update the canvas
-            self.fig.canvas.draw()
-            self.fig.canvas.flush_events()
+            plt.pause(1e-5)  # Wait for a while for it to load
 
             if self.done is True:
                 # Reset the graph settings
                 setup_graph()
+                plt.close("all")  # Close all active windows
 
                 # Redraw graph in an enlarged form
                 fig, (net_worth_ax, stock_ax, amount_ax) = plt.subplots(3, sharex="all")
 
-                # Update the axes titles
-                net_worth_ax.title.set_text("Net Worth: {0:.2f}".format(self.net_worths[-1]))
-                stock_ax.title.set_text("Stock Price: {0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
+                # Update the axes' titles
+                net_worth_ax.title.set_text("Net Worth: ${0:.2f}".format(self.net_worths[-1]))
+                stock_ax.title.set_text("Stock Price: ${0:.2f}".format(self.full_data_df["Close"][self.cur_step]))
                 amount_ax.title.set_text("Amount Bought/Sold (-1 to 1)")
 
                 # Set the scales
@@ -493,12 +501,21 @@ class TradingEnv(gym.Env):
                 sell_actions = [x if x < 0 else None for x in self.actions_amount]
                 buy_actions = [x if x > 0 else None for x in self.actions_amount]
 
+                # Find where to place the symbols
+                sell_positions = []
+                buy_positions = []
+
+                for i in range(self.data_df_len):
+                    sell_pos = sell_only[i] * self.net_worths[i]
+                    buy_pos = buy_only[i] * self.net_worths[i]
+
+                    sell_positions.append(sell_pos if sell_pos != 0 else None)  # If 0, don't place the symbol
+                    buy_positions.append(buy_pos if buy_pos != 0 else None)
+
                 # Plot the actions taken
-                net_worth_ax.scatter(range(self.df_start_index, self.df_end_index),
-                                     [sell_only[i] * self.net_worths[i] for i in range(self.data_df_len)], label="Sell",
+                net_worth_ax.scatter(range(self.df_start_index, self.df_end_index), sell_positions, label="Sell",
                                      color="red", marker="x")
-                net_worth_ax.scatter(range(self.df_start_index, self.df_end_index),
-                                     [buy_only[i] * self.net_worths[i] for i in range(self.data_df_len)], label="Buy",
+                net_worth_ax.scatter(range(self.df_start_index, self.df_end_index), buy_positions, label="Buy",
                                      color="green", marker="x")
 
                 stock_ax.scatter(range(self.df_start_index, self.df_end_index),
@@ -509,10 +526,11 @@ class TradingEnv(gym.Env):
                                   range(self.df_start_index, self.df_end_index)], label="Buy", color="green",
                                  marker="x")
 
+                # Plot action amounts
                 amount_ax.stem(range(self.df_start_index, self.df_end_index), sell_actions, "red", markerfmt="ro",
-                               label="Sell")
+                               label="Sell", use_line_collection=True)
                 amount_ax.stem(range(self.df_start_index, self.df_end_index), buy_actions, "green", markerfmt="go",
-                               label="Buy")
+                               label="Buy", use_line_collection=True)
 
                 # Generate plot legend
                 net_worth_ax.legend(loc="best")
@@ -523,7 +541,7 @@ class TradingEnv(gym.Env):
                 plt.show()
 
 
-# DEBUGGING CODE
+# DEBUG CODE
 if __name__ == "__main__":
     from lib.utils.dataUtils import process_data
 
