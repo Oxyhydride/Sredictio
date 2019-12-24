@@ -2,7 +2,7 @@
 preprocessing.py
 
 Created on 2019-12-23
-Updated on 2019-12-23
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -158,6 +158,8 @@ def preprocess_owned_stock_data(owned_stock_arr, lookback_window, stock_symbol):
     The function which preprocesses the owned stock data into the form needed for the observation
     array.
 
+    NOTE: From Version 0.3.0, this function is DEPRECIATED until further notice.
+
     Args:
         owned_stock_arr (np.ndarray): The owned stock array.
 
@@ -174,48 +176,50 @@ def preprocess_owned_stock_data(owned_stock_arr, lookback_window, stock_symbol):
         np.ndarray: The preprocessed "owned stock" array.
 
     """
-    # Obtain the stock history for the current stock
-    relevant_hist = []
-    for entry in owned_stock_arr[::-1]:
-        if entry[2] == stock_symbol:
-            relevant_hist.append(entry)
+    raise NotImplementedError("This function is depreciated.")
 
-    # Check if there is enough data in `relevant_hist`
-    owned_data = [0] * lookback_window
-
-    owned_hist_index = 0  # The index for the `owned_data` array
-    data_index = 0  # The index for the `np.ndarray`
-
-    # Fill in missing `owned_data` entries
-    try:
-        while True:
-            data_date = relevant_hist[data_index][0]  # This is the recorded date in the `np.ndarray`
-
-            # If not current date, then find out how many days differ
-            if datetime.datetime.strptime(data_date, "%Y-%m-%d") != datetime.datetime.today() - datetime.timedelta(
-                    days=owned_hist_index):
-                days_difference = (datetime.datetime.today() - datetime.timedelta(
-                    days=owned_hist_index) - datetime.datetime.strptime(data_date, "%Y-%m-%d")).days
-
-                # Fill in next `(days_difference + 1)` days with the current entry's data
-                for i in range(owned_hist_index, min(owned_hist_index + days_difference + 1, lookback_window)):
-                    owned_data[i] = relevant_hist[data_index][1]
-
-            else:
-                # Fill in current day's "owned stocks" data
-                owned_data[owned_hist_index] = relevant_hist[data_index][1]
-
-            # If there are empty entries, continue filling in data
-            if 0 in owned_data:
-                owned_hist_index = owned_data.index(0)  # This finds the next unfilled entry
-                data_index += 1
-
-            else:
-                break
-
-    except IndexError:
-        # This means that, before today, nothing was recorded.
-        # So leave the list as 0's
-        pass
-
-    return np.array(owned_data)
+    # # Obtain the stock history for the current stock
+    # relevant_hist = []
+    # for entry in owned_stock_arr[::-1]:
+    #     if entry[2] == stock_symbol:
+    #         relevant_hist.append(entry)
+    #
+    # # Check if there is enough data in `relevant_hist`
+    # owned_data = [0] * lookback_window
+    #
+    # owned_hist_index = 0  # The index for the `owned_data` array
+    # data_index = 0  # The index for the `np.ndarray`
+    #
+    # # Fill in missing `owned_data` entries
+    # try:
+    #     while True:
+    #         data_date = relevant_hist[data_index][0]  # This is the recorded date in the `np.ndarray`
+    #
+    #         # If not current date, then find out how many days differ
+    #         if datetime.datetime.strptime(data_date, "%Y-%m-%d") != datetime.datetime.today() - datetime.timedelta(
+    #                 days=owned_hist_index):
+    #             days_difference = (datetime.datetime.today() - datetime.timedelta(
+    #                 days=owned_hist_index) - datetime.datetime.strptime(data_date, "%Y-%m-%d")).days
+    #
+    #             # Fill in next `(days_difference + 1)` days with the current entry's data
+    #             for i in range(owned_hist_index, min(owned_hist_index + days_difference + 1, lookback_window)):
+    #                 owned_data[i] = relevant_hist[data_index][1]
+    #
+    #         else:
+    #             # Fill in current day's "owned stocks" data
+    #             owned_data[owned_hist_index] = relevant_hist[data_index][1]
+    #
+    #         # If there are empty entries, continue filling in data
+    #         if 0 in owned_data:
+    #             owned_hist_index = owned_data.index(0)  # This finds the next unfilled entry
+    #             data_index += 1
+    #
+    #         else:
+    #             break
+    #
+    # except IndexError:
+    #     # This means that, before today, nothing was recorded.
+    #     # So leave the list as 0's
+    #     pass
+    #
+    # return np.array(owned_data)

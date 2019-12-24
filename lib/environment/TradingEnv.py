@@ -146,7 +146,6 @@ class TradingEnv(gym.Env):
         # Define the observation space
         self.observation_space = gym.spaces.Box(low=0, high=1,
                                                 shape=(len(self.full_data_df.columns), self.lookback_window),
-                                                # shape=(len(self.full_data_df.columns) + 1, self.lookback_window),
                                                 dtype=np.float32)
 
         # Rendering variables
@@ -375,6 +374,8 @@ class TradingEnv(gym.Env):
         Returns:
             np.ndarray: The observation array for the current step.
 
+        TODO:
+            - (Ryan-Kan) Reintroduce the Stock Owned indicator
         """
 
         # Add dataframe values

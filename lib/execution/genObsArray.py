@@ -2,7 +2,7 @@
 genObsArray.py
 
 Created on 2019-12-23
-Updated on 2019-12-23
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -16,16 +16,29 @@ from lib.utils.dataUtils import add_technical_indicators
 
 
 # FUNCTIONS
-def gen_obs_array(ohlcv_data, sentiment_data, owned_stock_data):
+def gen_obs_array(ohlcv_data, sentiment_data):
+    """
+    Generates the observation array, given the relevant preprocessed data.
+
+    Args:
+        ohlcv_data (np.ndarray): The OHLCV data returned by the `process_ohlcv_data()`
+                                 function in `processData.py`.
+
+        sentiment_data (np.ndarray): The sentiment data returned by the
+                                     `process_sentiment_data()` function in
+                                     `processData.py`.
+
+    Returns:
+        np.ndarray: The observation array used for prediction.
+
+    """
+
     # Make a dataframe with the `ohlcv_data` and `sentiment_data` arrays
     dataframe = pd.DataFrame({"Open": ohlcv_data[:, 0], "High": ohlcv_data[:, 1], "Low": ohlcv_data[:, 2],
                               "Close": ohlcv_data[:, 3], "Volume": ohlcv_data[:, 4], "Sentiment": sentiment_data})
 
     # Add technical indicators to the dataframe
     dataframe = add_technical_indicators(dataframe)
-
-    # Add the owned stocks history to the dataframe
-    dataframe["Owned Stocks"] = owned_stock_data
 
     # Convert the dataframe to a `np.ndarray`
     observation = dataframe.transpose().values

@@ -2,7 +2,7 @@
 obtainData.py
 
 Created on 2019-12-12
-Updated on 2019-12-20
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -80,7 +80,7 @@ def get_lookback_window(model_file_name):
     return int(model_file_name.split("_")[1][4:])  # Obtains the look back window from the model file
 
 
-def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, days_to_scrape=100, retry_count=5):
+def get_obs_data(stock_name, stock_symbol, lookback_window, days_to_scrape=100, retry_count=5):
     """
     Gets the data needed to generate the observation array.
 
@@ -90,12 +90,6 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
 
         stock_symbol (str): The stock symbol. Also known as the stock ticker.
                             For example, "AAPL", "TSLA", "BA", "DIS".
-
-        stock_history_file (str): The file which contains all the stock transaction histories.
-
-                                  By default, this file would've been named `Stock History.csv`. However,
-                                  some may choose to rename this file. Hence, remember to specify the
-                                  renamed `stock_history_file` correctly.
 
         lookback_window (int): The lookback window for the model.
 
@@ -116,8 +110,6 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
         pd.DataFrame: The OHLCV dataframe.
         pd.Dataframe: The sentiment dataframe, which contains all the sentiment data from that range of
                       days.
-        np.ndarray: The "owned stock history" array, which lists the number of stocks you own for every
-                    stock.
 
     """
     # Check if look back window is sufficient
@@ -140,15 +132,8 @@ def get_obs_data(stock_name, stock_symbol, stock_history_file, lookback_window, 
                                              (date.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
                                              date.today().strftime("%Y-%m-%d"), verbose=False, to_csv=False)
 
-    # Get the owned stock history
-    print(f"Obtaining owned stock history...")
-
-    owned_stock_array = pd.read_csv(stock_history_file).to_numpy()
-
-    print("Done!")
-
-    # Return the obtained dataframes (and the np.ndarray)
-    return ohlcv_dataframe, sentiment_dataframe, owned_stock_array
+    # Return the obtained dataframes
+    return ohlcv_dataframe, sentiment_dataframe
 
 
 # DEBUG CODE
@@ -157,8 +142,7 @@ if __name__ == "__main__":
     lookbackWindow = get_lookback_window(get_model_file("../../Models"))
 
     # Next, get the needed data
-    ohlcvDataframe, sentimentDataframe, ownedStockArray = get_obs_data("Facebook", "FB", "../../Stock History.csv",
-                                                                       lookbackWindow)
+    ohlcvDataframe, sentimentDataframe, ownedStockArray = get_obs_data("Facebook", "FB", lookbackWindow)
 
     # Output them
     print(lookbackWindow)

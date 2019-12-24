@@ -29,7 +29,6 @@ parser = argparse.ArgumentParser(description="A file which helps train the agent
 parser.add_argument("stock_dir", type=str, help="Which directory should the system obtain the stock data from?")
 parser.add_argument("training_stock", type=str, help="Which stock file should be used for training?")
 parser.add_argument("testing_stock", type=str, help="Which stock file should be used for testing?")
-parser.add_argument("study_file", type=str, help="Where are the parameters stored?")
 
 parser.add_argument("-d", "--model_dir", type=str, help="Which directory should the model be placed in?",
                     default="./Models/")
@@ -65,7 +64,6 @@ NO_ITERATIONS = args.no_iterations
 NO_ENTRIES_TAKING_AVG = args.no_entries_taking_avg
 MAX_TRADING_SESSION = args.max_trading_session
 LOOK_BACK_WINDOW = args.look_back_window
-OPTUNA_STUDY_FILE = args.study_file
 
 SEED = args.set_seed
 
@@ -84,18 +82,6 @@ trainingDF = dataUtils.process_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_tak
 train_baselines = baselineUtils.Baselines(trainingDF, render=(RENDER == 2))
 train_baselines.run_policies()
 
-# Obtain the best agent's parameters from the Optuna study
-# print("\nLoading Optuna study hyperparameters...")
-# try:
-#     study = optuna.load_study(study_name="A2C", storage=f"sqlite:///{OPTUNA_STUDY_FILE}")
-#
-# except ValueError:
-#     raise FileNotFoundError("The study file cannot be found. Was the specified file correct?")
-#
-# hyperparams = study.best_trial.params
-# print("Successfully obtained hyperparameters!\n")
-hyperparams = {}
-
 # MODEL TRAINING
 # Define a environment for the agent to train on
 agentEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, max_trading_session=MAX_TRADING_SESSION,
@@ -104,10 +90,10 @@ trainEnv = DummyVecEnv([lambda: agentEnv])  # This is the environment which the 
 
 # Create the A2C agent
 if USE_TENSORBOARD:
-    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C", **hyperparams)
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, tensorboard_log="./tensorboard/A2C")
 
 else:
-    model = A2C(MlpLstmPolicy, trainEnv, verbose=1, **hyperparams)
+    model = A2C(MlpLstmPolicy, trainEnv, verbose=1)
 
 # Train the agent
 model.learn(total_timesteps=NO_ITERATIONS, seed=SEED)

@@ -2,7 +2,7 @@
 Main.py
 
 Created on 2019-12-04
-Updated on 2019-12-23
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -18,7 +18,7 @@ from stable_baselines import A2C
 from lib.execution.genAction import gen_action
 from lib.execution.genObsArray import gen_obs_array
 from lib.execution.obtainData import get_model_file, get_lookback_window, get_obs_data
-from lib.execution.processData import preprocess_ohlcv_data, preprocess_sentiment_data, preprocess_owned_stock_data
+from lib.execution.processData import preprocess_ohlcv_data, preprocess_sentiment_data
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove the ugly tensorflow warnings
@@ -26,7 +26,6 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove the ugl
 # ARGUMENTS
 parser = argparse.ArgumentParser(description="A program which helps generate actions for the current day.")
 
-parser.add_argument("stock_history_file", type=str, help="The stock history file, usually saved as a .csv.")
 parser.add_argument("model_dir", type=str, help="The model directory, which contains all the model files.")
 parser.add_argument("stock_name", type=str, help="The stock's name. E.G. Amazon, Apple, Google/Alphabet, Tesla")
 parser.add_argument("stock_symbol", type=str,
@@ -45,7 +44,6 @@ args = parser.parse_args()
 
 STOCK_NAME = args.stock_name
 STOCK_SYMBOL = args.stock_symbol
-STOCK_HISTORY_FILE = args.stock_history_file
 
 DAYS_TO_SCRAPE = int(args.days_to_scrape_data)
 
@@ -62,18 +60,15 @@ modelFile = get_model_file(MODEL_DIRECTORY)
 lookbackWindow = get_lookback_window(modelFile)
 
 # Obtain the data needed for preprocessing
-ohlcvDataframe, sentimentDataframe, ownedStockArr = get_obs_data(STOCK_NAME, STOCK_SYMBOL, STOCK_HISTORY_FILE,
-                                                                 lookbackWindow, days_to_scrape=DAYS_TO_SCRAPE,
-                                                                 retry_count=RETRY_COUNT)
+ohlcvDataframe, sentimentDataframe = get_obs_data(STOCK_NAME, STOCK_SYMBOL, lookbackWindow, days_to_scrape=DAYS_TO_SCRAPE, retry_count=RETRY_COUNT)
 
 # PREPROCESSING
-# Preprocess all data
+# Preprocess OHLCV data and sentiment data
 ohlcvData = preprocess_ohlcv_data(ohlcvDataframe, lookbackWindow)
 sentimentData = preprocess_sentiment_data(sentimentDataframe, lookbackWindow)
-ownedStockData = preprocess_owned_stock_data(ownedStockArr, lookbackWindow, STOCK_SYMBOL)
 
 # Convert preprocessed data into the observation arrays
-observation = gen_obs_array(ohlcvData, sentimentData, ownedStockData)
+observation = gen_obs_array(ohlcvData, sentimentData)
 
 print("Generated the observation array.")
 
