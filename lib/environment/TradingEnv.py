@@ -106,6 +106,15 @@ class TradingEnv(gym.Env):
         # Add technical indicators to `full_data_df`
         self.full_data_df = add_technical_indicators(self.full_data_df)
 
+        # Create a scaled copy of `full_data_df`
+        full_data_df_values = self.full_data_df.values
+        full_data_df_columns = self.full_data_df.columns
+
+        self.min_max_scaler = preprocessing.MinMaxScaler()
+        scaled_values = self.min_max_scaler.fit_transform(full_data_df_values)
+
+        self.scaled_full_data_df = pd.DataFrame(scaled_values, columns=full_data_df_columns)
+
         # Create the current iteration's dataframe, also known as `data_df`
         self.full_data_df_len = len(self.full_data_df)
         self.data_df_len = None
@@ -136,7 +145,8 @@ class TradingEnv(gym.Env):
 
         # Define the observation space
         self.observation_space = gym.spaces.Box(low=0, high=1,
-                                                shape=(len(self.full_data_df.columns) + 1, self.lookback_window),
+                                                shape=(len(self.full_data_df.columns), self.lookback_window),
+                                                # shape=(len(self.full_data_df.columns) + 1, self.lookback_window),
                                                 dtype=np.float32)
 
         # Rendering variables
@@ -324,8 +334,10 @@ class TradingEnv(gym.Env):
         # NOTE: Negative values = Sell
         if action_type == 0:  # Sell
             self.actions_amount.append(-(action[1] + 1) / 5)
+
         elif action_type == 1:  # Hold
             self.actions_amount.append(0)
+
         else:  # Buy
             self.actions_amount.append((action[1] + 1) / 5)
 
@@ -366,17 +378,13 @@ class TradingEnv(gym.Env):
         """
 
         # Add dataframe values
-        obs = self.full_data_df[self.cur_step - self.lookback_window: self.cur_step].transpose().values.tolist()
+        obs = self.scaled_full_data_df[self.cur_step - self.lookback_window: self.cur_step].transpose().values.tolist()
 
         # Add the stock_owned_history to the observation list
-        obs.append(self.stock_owned_history[-self.lookback_window:])
+        # obs.append(self.stock_owned_history[-self.lookback_window:])
 
         # Convert obs to np.ndarray
         obs = np.array(obs)
-
-        # Normalise values
-        min_max_scaler = preprocessing.MinMaxScaler()
-        obs = min_max_scaler.fit_transform(obs.astype("float32"))
 
         # Return observation list
         return obs

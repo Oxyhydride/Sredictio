@@ -1,5 +1,4 @@
-This issue tracker should **ONLY** be used for reporting bugs.
-<!--- REMOVE THE FIRST LINE AND THIS LINE AFTER AFFIRMING -->
+<!--- This issue tracker should ONLY be used for reporting bugs -->
 
 <!--- Provide a general summary of the issue in the Title above -->
 
@@ -9,23 +8,12 @@ This issue tracker should **ONLY** be used for reporting bugs.
 ## Current Behaviour
 <!--- Tell us what happens instead of the expected behaviour -->
 
-## Possible Solution
-<!--- Not obligatory, but suggest a fix/reason for the bug -->
-
 ## Steps to Reproduce
-<!--- Provide a link to a live example or provide an unambiguous set of steps to -->
-<!--- reproduce this bug. Include code to reproduce, if relevant -->
+<!--- Provide a link to a live example or provide an unambiguous set of steps to reproduce the bug -->
 1.
 2.
 3.
 4.
 
-## Context (Environment)
-<!--- How has this issue affected you? What are you trying to accomplish? -->
-<!--- Providing context helps us come up with a solution that is most useful in the real world -->
-
-## Detailed Description
-<!--- Provide a detailed description of the change or addition you are proposing -->
-
-## Possible Implementation
-<!--- Not obligatory, but suggest an idea for implementing addition or change -->
+## Possible Solution
+<!--- Not obligatory, but suggest a fix/reason for the bug -->

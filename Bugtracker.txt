@@ -3,6 +3,9 @@
 ------------------------------------------------------------------------------------------------------------------------
 - Model Prediction is too Consistent #6
     * https://github.com/Ryan-Kan/Sredictio/issues/6
+    * Temporary fix for Issue #6: https://github.com/Ryan-Kan/Sredictio/issues/6#issuecomment-568670544
+- Stock Price Annotation at Incorrect Position #7
+    * https://github.com/Ryan-Kan/Sredictio/issues/7
 
 ------------------------------------------------------------------------------------------------------------------------
                                                     RESOLVED ISSUES

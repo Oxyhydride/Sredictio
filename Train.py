@@ -2,7 +2,7 @@
 Train.py
 
 Created on 2019-11-30
-Updated on 2019-12-14
+Updated on 2019-12-24
 
 Copyright Ryan Kan 2019
 
@@ -13,7 +13,7 @@ Description: A file which helps train the agent and generate the model file.
 import argparse
 import os
 
-import optuna
+# import optuna
 from stable_baselines import A2C
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
@@ -85,10 +85,16 @@ train_baselines = baselineUtils.Baselines(trainingDF, render=(RENDER == 2))
 train_baselines.run_policies()
 
 # Obtain the best agent's parameters from the Optuna study
-print("\nLoading Optuna study hyperparameters...")
-study = optuna.load_study(study_name="A2C", storage=f"sqlite:///{OPTUNA_STUDY_FILE}")
-hyperparams = study.best_trial.params
-print("Successfully obtained hyperparameters!\n")
+# print("\nLoading Optuna study hyperparameters...")
+# try:
+#     study = optuna.load_study(study_name="A2C", storage=f"sqlite:///{OPTUNA_STUDY_FILE}")
+#
+# except ValueError:
+#     raise FileNotFoundError("The study file cannot be found. Was the specified file correct?")
+#
+# hyperparams = study.best_trial.params
+# print("Successfully obtained hyperparameters!\n")
+hyperparams = {}
 
 # MODEL TRAINING
 # Define a environment for the agent to train on
