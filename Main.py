@@ -2,7 +2,7 @@
 Main.py
 
 Created on 2019-12-04
-Updated on 2019-12-24
+Updated on 2019-12-25
 
 Copyright Ryan Kan 2019
 
@@ -60,7 +60,8 @@ modelFile = get_model_file(MODEL_DIRECTORY)
 lookbackWindow = get_lookback_window(modelFile)
 
 # Obtain the data needed for preprocessing
-ohlcvDataframe, sentimentDataframe = get_obs_data(STOCK_NAME, STOCK_SYMBOL, lookbackWindow, days_to_scrape=DAYS_TO_SCRAPE, retry_count=RETRY_COUNT)
+ohlcvDataframe, sentimentDataframe = get_obs_data(STOCK_NAME, STOCK_SYMBOL, lookbackWindow,
+                                                  days_to_scrape=DAYS_TO_SCRAPE, retry_count=RETRY_COUNT)
 
 # PREPROCESSING
 # Preprocess OHLCV data and sentiment data
