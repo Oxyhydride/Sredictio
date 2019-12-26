@@ -3,6 +3,8 @@
 ------------------------------------------------------------------------------------------------------------------------
 - Stock Price Annotation at Incorrect Position #7
     * https://github.com/Ryan-Kan/Sredictio/issues/7
+- Agent Net Worth is Negative #9
+    * https://github.com/Ryan-Kan/Sredictio/issues/9
 
 ------------------------------------------------------------------------------------------------------------------------
                                                     RESOLVED ISSUES

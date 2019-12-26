@@ -15,10 +15,10 @@ import argparse
 import tensorflow as tf
 from stable_baselines import A2C
 
-from lib.execution.genAction import gen_action
-from lib.execution.genObsArray import gen_obs_array
-from lib.execution.obtainData import get_model_file, get_lookback_window, get_obs_data
-from lib.execution.processData import preprocess_ohlcv_data, preprocess_sentiment_data
+from lib.utils.executionUtils.genAction import gen_action
+from lib.utils.executionUtils.genObsArray import gen_obs_array
+from lib.utils.executionUtils.obtainData import get_model_file, get_lookback_window, get_obs_data
+from lib.utils.executionUtils.processData import preprocess_ohlcv_data, preprocess_sentiment_data
 
 # SETUP
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # Remove the ugly tensorflow warnings

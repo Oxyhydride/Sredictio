@@ -2,7 +2,7 @@
 TradingEnv.py
 
 Created on 2019-06-03
-Updated on 2019-12-24
+Updated on 2019-12-25
 
 Copyright Ryan Kan 2019
 
@@ -552,10 +552,11 @@ class TradingEnv(gym.Env):
 
 # DEBUG CODE
 if __name__ == "__main__":
-    from lib.utils.dataUtils import process_data
+    from lib.utils.dataUtils import obtain_data, process_data
 
     # Prepare the training dataframe
-    debugDF = process_data("../trainingData/", "BA")  # Prepare Boeing data
+    ohlcvData, sentimentData = obtain_data("../trainingData/", "BA")
+    debugDF = process_data(ohlcvData, sentimentData)  # Prepare Boeing data
 
     # Prepare the environment
     debugEnv = TradingEnv(debugDF, is_serial=True)

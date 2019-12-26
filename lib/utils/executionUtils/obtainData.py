@@ -130,7 +130,7 @@ def get_obs_data(stock_name, stock_symbol, lookback_window, days_to_scrape=100, 
 
     sentiment_dataframe = get_sentiment_data(stock_symbol, stock_name,
                                              (date.today() - timedelta(days=days_to_scrape)).strftime("%Y-%m-%d"),
-                                             date.today().strftime("%Y-%m-%d"), verbose=False, to_csv=False)
+                                             date.today().strftime("%Y-%m-%d"), verbose=False, save_as_csv=False)
 
     # Return the obtained dataframes
     return ohlcv_dataframe, sentiment_dataframe

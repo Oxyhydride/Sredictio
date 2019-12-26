@@ -23,8 +23,8 @@ from lib.utils.miscUtils import natural_sort
 
 
 # FUNCTIONS
-def get_sentiment_data(stock_symbol, stock_name, start_date, end_date, output_dir="./trainingData/", batch_size=20,
-                       time_offset=8, irrelevant_post_tolerance=20, to_csv=True, verbose=True):
+def get_sentiment_data(stock_symbol, stock_name, start_date, end_date, batch_size=20, verbose=True,
+                       time_offset=8, irrelevant_post_tolerance=20, save_as_csv=False, output_dir=None):
     """
     Obtains sentiment data from Straits Times' articles on the company.
 
@@ -51,13 +51,12 @@ def get_sentiment_data(stock_symbol, stock_name, start_date, end_date, output_di
 
                         The end date has to be in the form YYYY-MM-DD.
 
-        output_dir (str): Directory to place the .csv file, if `to_csv = True`.
-                          (Default = "./trainingData/")
-
         batch_size (int): Batch size for each page on the Straits Times' website. (Default = 20)
 
                           Note that the value of `batch_size` must be in the following range:
                                                 1 <= batch_size < 100
+
+        verbose (bool): Should the program show intermediate output? (Default = True)
 
         time_offset (int): The timezone offset. (Default = 8)
 
@@ -74,9 +73,11 @@ def get_sentiment_data(stock_symbol, stock_name, start_date, end_date, output_di
                                          been observed consecutively, the program will automatically
                                          halt and output the sentiment dataframe.
 
-        to_csv (bool): Should the sentiment data be placed in a csv file? (Default = True)
+        save_as_csv (bool): Should the sentiment data be placed in a csv file? (Default = True)
 
-        verbose (bool): Should the program show intermediate output? (Default = True)
+        output_dir (str): Directory to place the .csv file. (Default = None)
+
+                          This parameter is only required if `save_as_csv = True`.
 
     Returns:
         pd.DataFrame: Dataframe of the sentiment data. Will only return if `to_csv = True`.
@@ -212,7 +213,7 @@ def get_sentiment_data(stock_symbol, stock_name, start_date, end_date, output_di
     sentiment_dataframe = sentiment_dataframe.loc[mask]
 
     # Output the compiled dataframe
-    if to_csv:
+    if save_as_csv:
         sentiment_dataframe.to_csv(output_dir + stock_symbol + "_sentiments.csv", index=False)
 
     else:
@@ -232,7 +233,7 @@ if __name__ == "__main__":
     endDate = input("Please enter the ending date in the form YYYY-MM-DD:   ")
 
     # Get the sentiment dataframe
-    sentimentDF = get_sentiment_data(stockSymbol, stockName, startDate, endDate, to_csv=outputAsFile,
+    sentimentDF = get_sentiment_data(stockSymbol, stockName, startDate, endDate, save_as_csv=outputAsFile,
                                      output_dir="../../Training Data/" + stockSymbol + "/")
 
     # Output

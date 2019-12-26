@@ -2,7 +2,7 @@
 baselineUtils.py
 
 Created on 2019-10-29
-Updated on 2019-12-16
+Updated on 2019-12-25
 
 Copyright Ryan Kan 2019
 
@@ -175,10 +175,11 @@ class Baselines:
 
 # DEBUG CODE
 if __name__ == "__main__":
-    from lib.utils.dataUtils import process_data
+    from lib.utils.dataUtils import obtain_data, process_data
 
     # Prepare the data
-    debugDF = process_data("../trainingData/", "AMZN")
+    ohlcvData, sentimentData = obtain_data("../../Training Data/", "AMZN")
+    debugDF = process_data(ohlcvData, sentimentData)
 
     # Run baselines against environment
     baselines = Baselines(debugDF, render=False)

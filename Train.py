@@ -2,7 +2,7 @@
 Train.py
 
 Created on 2019-11-30
-Updated on 2019-12-24
+Updated on 2019-12-25
 
 Copyright Ryan Kan 2019
 
@@ -13,7 +13,6 @@ Description: A file which helps train the agent and generate the model file.
 import argparse
 import os
 
-# import optuna
 from stable_baselines import A2C
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
@@ -75,7 +74,8 @@ graphingUtils.setup_graph()
 set_global_seeds(SEED)
 
 # DATA PREPARATION
-trainingDF = dataUtils.process_data(STOCK_DIRECTORY, TRAINING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+trainingOHLCVData, trainingSentimentData = dataUtils.obtain_data(STOCK_DIRECTORY, TRAINING_STOCK)
+trainingDF = dataUtils.process_data(trainingOHLCVData, trainingSentimentData, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # PREPROCESSING
 # Run baselines on training data and generate their scores
@@ -104,12 +104,12 @@ a2cEnv = TradingEnv(trainingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_seri
                     lookback_window_size=LOOK_BACK_WINDOW)
 done = False
 
-train_state = a2cEnv.reset(print_init_invest_amount=True)
+trainState = a2cEnv.reset(print_init_invest_amount=True)
 
 while not done:
-    action, _ = model.predict([train_state])
+    action, _ = model.predict([trainState])
 
-    train_state, _, done, _ = a2cEnv.step(action[0])
+    trainState, _, done, _ = a2cEnv.step(action[0])
 
     if RENDER in [1, 2]:
         a2cEnv.render()
@@ -123,23 +123,24 @@ print()
 
 # MODEL TESTING
 # Prepare the testing data
-testingDF = dataUtils.process_data(STOCK_DIRECTORY, TESTING_STOCK, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
+testingOHLCVData, testingSentimentData = dataUtils.obtain_data(STOCK_DIRECTORY, TESTING_STOCK)
+testingDF = dataUtils.process_data(testingOHLCVData, testingSentimentData, entries_taking_avg=NO_ENTRIES_TAKING_AVG)
 
 # Run baselines on testing data and generate their scores
-test_baselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))
-test_baselines.run_policies()
+testBaselines = baselineUtils.Baselines(testingDF, render=(RENDER == 2))
+testBaselines.run_policies()
 
 # Test how well the agent does on the testing environment
 a2cEnv = TradingEnv(testingDF, init_buyable_stocks=INIT_BUYABLE_STOCKS, is_serial=True,
                     lookback_window_size=LOOK_BACK_WINDOW)
 done = False
 
-test_state = a2cEnv.reset(print_init_invest_amount=True)
+testState = a2cEnv.reset(print_init_invest_amount=True)
 
 while not done:
-    action, _ = model.predict([test_state])
+    action, _ = model.predict([testState])
 
-    test_state, _, done, _ = a2cEnv.step(action[0])
+    testState, _, done, _ = a2cEnv.step(action[0])
 
     if RENDER in [1, 2]:
         a2cEnv.render()
