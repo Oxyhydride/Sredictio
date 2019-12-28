@@ -2,7 +2,7 @@
 stockUtils.py
 
 Created on 2019-12-11
-Updated on 2019-12-20
+Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 
@@ -21,6 +21,46 @@ from requests.exceptions import HTTPError
 
 
 # FUNCTIONS
+def get_ohlcv_crumb(session, stock_symbol, timeout=3):
+    """
+    Gets the crumb of the Yahoo Finance web page.
+
+    Args:
+        session (requests.Session): The `requests.Session` object.
+
+                                    This will be used as a handler to get the crumb data from
+                                    Yahoo Finance.
+
+        stock_symbol (str): The stock symbol, also known as the stock ticker.
+                            For example, "FB", "TSLA" and "AMZN" are all valid stock symbols.
+
+        timeout (int): The duration to wait for, in seconds, before the web page request will
+                       raise a timeout error. (Default = 3)
+
+    Returns:
+        str: The Yahoo Finance crumb.
+
+    Yields:
+        ValueError: If the crumb of that particular stock could not be obtained.
+
+    """
+    # Try to get the crumb
+    response = session.get(f"https://finance.yahoo.com/quote/{stock_symbol}/history?p={stock_symbol}",
+                           timeout=timeout)
+    response.raise_for_status()  # Will return a HTTP error if it is forbidden
+
+    match = re.search(r'"CrumbStore":{"crumb":"(.*?)"}', response.text)  # Get the crumb via a regex search
+
+    # Check if crumb was obtained
+    if not match:
+        raise ValueError('Could not get crumb from Yahoo Finance')
+
+    else:
+        crumb = match.group(1)
+
+    return crumb
+
+
 def get_ohlcv_data(stock_symbol, start_date, end_date, timeout=3, retry_count=5, retry_delay=1.0, verbose=True,
                    save_as_csv=False, file_location=None):
     """
@@ -75,18 +115,7 @@ def get_ohlcv_data(stock_symbol, start_date, end_date, timeout=3, retry_count=5,
             session = requests.Session()
 
             # Get crumb from Yahoo Finance
-            response = session.get(f"https://finance.yahoo.com/quote/{stock_symbol}/history?p={stock_symbol}",
-                                   timeout=timeout)
-            response.raise_for_status()  # Will return a HTTP error if it is forbidden
-
-            match = re.search(r'"CrumbStore":{"crumb":"(.*?)"}', response.text)  # Get the crumb via a regex search
-
-            # Check if crumb was obtained
-            if not match:
-                raise ValueError('Could not get crumb from Yahoo Finance')
-
-            else:
-                crumb = match.group(1)
+            crumb = get_ohlcv_crumb(session, stock_symbol, timeout=timeout)
 
             # Get period to scrape data
             date_from = int(datetime.strptime(start_date, "%Y-%m-%d").timestamp())

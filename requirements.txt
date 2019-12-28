@@ -13,3 +13,4 @@ requests
 seaborn
 sklearn
 tqdm
+twitterscraper  # For scraping news titles

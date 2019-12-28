@@ -2,7 +2,7 @@
 GUIMain.py
 
 Created on 2019-12-11
-Updated on 2019-12-12
+Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 
@@ -10,12 +10,15 @@ Description: The main python file for Sredictio's GUI
 
 NOTE: This is just a test file.
 """
-import tkinter.font as tk_font
+
 # IMPORTS
+import tkinter.font as tk_font
 from tkinter import *
 from tkinter import ttk
 
-from lib.utils.stockUtils import get_html_rows
+import requests
+
+from lib.utils.stockUtils import get_ohlcv_crumb
 
 # CONSTANTS
 MESSAGE_STR_LEN = 80
@@ -126,17 +129,20 @@ class Application(ttk.Frame):
         # Check if the stock symbol exists
         try:
             print("Getting HTML rows...")
-            get_html_rows(stock_symbol)
+            get_ohlcv_crumb(requests.Session(), stock_symbol)
 
-        except NameError:
+        except ValueError:
             print("Stock symbol not found... uh oh")
             self.show_message("WARNING", 1)
             return
 
 
-# Create root
+# Get current version
+version = open("../VERSION", "r").read()  # TODO: UPDATE THE FILE PATH IF NEEDED
+
+# Create root window
 root = Tk()
-root.title("Sredictio")
+root.title(f"Sredictio {version}")
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
