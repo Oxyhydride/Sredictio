@@ -5,10 +5,10 @@ A stock trading bot using sentiment analysis and reinforcement learning.
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in stock trading.
 
 ## What does Sredictio stand for?
-Sredictio stands for ***S***tock P***redictio***n. 
+Sredictio stands for  **S**tock P**redictio**n. 
 
 ## How did this get made?
-Sredictio, at its core, is a A2C (a.k.a. [Advantage Actor Critic](https://sergioskar.github.io/Actor_critics/)) agent that has been trained against stock and sentiment data to come up with *actions* (buy, sell or hold) to maximise profit.
+At its core, Sredictio is an A2C (a.k.a. [Advantage Actor Critic](https://sergioskar.github.io/Actor_critics/)) agent that has been trained against stock and sentiment data to come up with *actions* (buy, sell or hold) to maximise profit.
 
 ## How was the data obtained?
 The OHLCV (which stands for Open, High, Low, Close and Volume) data was obtained from [Yahoo Finance](https://finance.yahoo.com/).
@@ -33,12 +33,12 @@ For more on the model and its format, refer to [here](https://stable-baselines.r
 ### Training
 To train the model, run the following command, replacing the parameters in "<>" with your own strings:
 
-```
+```bash
 python Train.py <TRAINING DATA DIRECTORY> <STOCK THAT THE MODEL WOULD BE TRAINED ON> <STOCK THAT THE MODEL WOULD BE TESTED ON>
 ```
 
 For example,
-```
+```bash
 python Train.py "Training Data" AMZN BA
 ```
 where `AMZN` is the "Training Stock" and `BA` is the "Testing Stock".
@@ -46,41 +46,38 @@ where `AMZN` is the "Training Stock" and `BA` is the "Testing Stock".
 ### Testing with Historical Data
 To test the model with historical data, run the following command, replacing the parameters in "<>" with your own strings:
 
-```
-python "Test Sredictio.py" <MODEL DIRECTORY> <START DATE> <END DATE>
+```bash
+python "Test Sredictio.py" <MODEL DIRECTORY> <START DATE> <END DATE> <STOCK NAME> <STOCK SYMBOL>
 ```
 
-For instance, the following are valid commands:
-```
-python "Test Sredictio.py" Models 2019-01-01 2019-12-12
-```
-and
-
-```
-python "Test Sredictio.py" Models 2019-06-01 2019-06-30
-```
-but not
-
-```
-python "Test Sredictio.py" Models 2019-02-01 2019-01-01
-```
-or
-```
-python "Test Sredictio.py" Models 2019-01-01 2018-01-01
+For example,
+```bash
+python "Test Sredictio.py" Models 2019-01-01 2019-12-12 Facebook FB
 ```
 
 ### Updating Training Data
 To update Sredictio's training data, run `Update Training Data.py` **with no arguments**.
 
 For example,
-```
+```bash
 python "Update Training Data.py"
 ```
 
 ### Updating Sredictio
 To update Sredictio, run `Update Sredictio.py` using the following command:
-```
+```bash
 python "Update Sredictio.py"
+```
+
+### Generating an Action
+To generate an action for a particular stock, run `Main.py`, replacing the parameters in "<>" with your own strings:
+```bash
+python Main.py <MODELS DIRECTORY> <STOCK NAME> <STOCK SYMBOL>
+```
+
+For instance:
+```bash
+python Main.py Models "Facebook" FB
 ```
 
 ## What if I found a bug?
