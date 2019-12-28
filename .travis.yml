@@ -1,31 +1,15 @@
-language: python            # This works for Linux but is an error on macOS or Windows
-jobs:
-  include:
-    - name: "Python 3.7.5 on Xenial Linux"
-      python: 3.7           # This works for Linux but is ignored on macOS or Windows
-
-    - name: "Python 3.7.4 on macOS"
-      os: osx
-      osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
-      language: shell       # 'language: python' is an error on Travis CI macOS
-
-    - name: "Python 3.8.0 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install:
-        - choco install python --version 3.7.5
-        - python -m pip install --upgrade pip
-      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+language: python
+python: 3.7
 
 install:
-  - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
-  - pip3 install --user -r requirements.txt
+  - pip install -r requirements.txt
 
-# 'python' points to Python 2.7 on macOS but points to Python 3.7 on Linux and Windows
-# 'python3' is a 'command not found' error on Windows but 'py' works on Windows only
 script:
+  # Install the NLTK stuff
+  - python3 -c "import nltk; nltk.download('vader_lexicon')"
+
   # Test `Train.py`
-  - python3 Train.py "Training Data" AMZN BA -n 500 -t 0 -l 3 || python Train.py "Training Data" AMZN BA -n 500 -t 0 -l 3
+  - python3 Train.py "Training Data" AMZN BA -n 500 -t 0 -l 3
 
   # Test `Main.py`
-  - python3 Main.py Models "Facebook" FB || python Main.py Models "Facebook" FB
+  - python3 Main.py Models "Facebook" FB
