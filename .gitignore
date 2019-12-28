@@ -2,7 +2,6 @@
 **/.idea/
 **/.ipynb_checkpoints/
 /tensorboard/*
-Extras/Code Obfuscation/*
 
 # Files to be excluded
 **/.DS_Store

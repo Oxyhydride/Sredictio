@@ -1,6 +1,7 @@
 ![Sredictio Cover Image](https://user-images.githubusercontent.com/25820201/69715400-246fa900-1143-11ea-91e1-7f9107c652a0.jpg)
 A stock trading bot using sentiment analysis and reinforcement learning.
 
+![Travis CI Tracker](https://api.travis-ci.com/Ryan-Kan/Sredictio.svg?branch=master)
 ## What is this?
 Sredictio is a stock trading bot that uses sentiment analysis and stock data to assist you in stock trading.
 
