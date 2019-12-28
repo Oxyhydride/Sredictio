@@ -5,11 +5,11 @@ install:
   - pip install -r requirements.txt
 
 script:
-  # Install the NLTK stuff
+  # Install NLTK stuff
   - python3 -c "import nltk; nltk.download('vader_lexicon')"
 
   # Test `Train.py`
   - python3 Train.py "Training Data" AMZN BA -n 500 -t 0 -l 3
 
   # Test `Main.py`
-  - python3 Main.py Models "Facebook" FB
+  - python3 Main.py Models "Facebook" FB -r 1000
