@@ -1,8 +1,8 @@
 """
-TradingEnv.py
+tradingEnv.py
 
 Created on 2019-06-03
-Updated on 2019-12-25
+Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 

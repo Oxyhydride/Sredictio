@@ -6,9 +6,7 @@ Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 
-Description: The main python file for Sredictio's GUI
-
-NOTE: This is just a test file.
+Description: A test file for Sredictio's GUI.
 """
 
 # IMPORTS
@@ -138,7 +136,7 @@ class Application(ttk.Frame):
 
 
 # Get current version
-version = open("../VERSION", "r").read()  # TODO: UPDATE THE FILE PATH IF NEEDED
+version = open("../../VERSION", "r").read()  # TODO: UPDATE THE FILE PATH IF NEEDED
 
 # Create root window
 root = Tk()

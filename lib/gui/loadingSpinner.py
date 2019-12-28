@@ -25,7 +25,7 @@ class LoadingSpinner:
     to see a Desmos plot of the progress circle.
     """
 
-    def __init__(self, window, scale_factor=20, length=95, circle_radius=5, full_spin_duration=0.6):
+    def __init__(self, window, scale_factor=10, length=45, circle_radius=5, full_spin_duration=0.6):
         """
         The initialisation method of the `LoadingSpinner` class.
 
@@ -33,13 +33,13 @@ class LoadingSpinner:
             window (Tk): The window of the Tkinter application that this spinner should be
                          placed in.
 
-            scale_factor (int): The scale factor of the loading spinner. (Default=20)
+            scale_factor (int): The scale factor of the loading spinner. (Default=10)
 
                                 Refer to https://www.desmos.com/calculator/e8hzykjid7 to
                                 see how the scale factor is calculated, and how the circle
                                 would look like in the end.
 
-            length (int): The length of the canvas. (Default = 95)
+            length (int): The length of the canvas. (Default = 45)
 
             circle_radius (int): The radius of each circle in the spinner. (Default = 5)
 
@@ -81,10 +81,6 @@ class LoadingSpinner:
             self.draw_circle(center_x, -scale_factor * sqrt(2) + center_y, circle_radius, fill_colour=colour),
             self.draw_circle(center_x + scale_factor, center_y - scale_factor, circle_radius, fill_colour=colour),
             self.draw_circle(scale_factor * sqrt(2) + center_x, center_y, circle_radius, fill_colour=colour),
-
-            # Center point
-            # TODO (Ryan-Kan, 0.3.0): REMOVE THIS CODE AFTER DEBUGGING
-            self.draw_circle(center_x, center_y, 1, fill_colour="red")
         ]
 
         return progress_circle_points

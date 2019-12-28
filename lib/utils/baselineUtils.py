@@ -13,7 +13,7 @@ import pandas as pd
 import ta
 from tqdm import tqdm
 
-from lib.environment.TradingEnv import TradingEnv
+from lib.environment.tradingEnv import TradingEnv
 
 
 # BASELINES CLASS

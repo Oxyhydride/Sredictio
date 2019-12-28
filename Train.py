@@ -2,7 +2,7 @@
 Train.py
 
 Created on 2019-11-30
-Updated on 2019-12-25
+Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 
@@ -18,7 +18,7 @@ from stable_baselines.common import set_global_seeds
 from stable_baselines.common.policies import MlpLstmPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 
-from lib.environment.TradingEnv import TradingEnv
+from lib.environment.tradingEnv import TradingEnv
 from lib.utils import baselineUtils, dataUtils, graphingUtils
 from lib.utils.miscUtils import create_path, natural_sort
 

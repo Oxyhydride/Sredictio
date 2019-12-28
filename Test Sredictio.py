@@ -2,7 +2,7 @@
 Test Sredictio.py
 
 Created on 2019-12-25
-Updated on 2019-12-26
+Updated on 2019-12-28
 
 Copyright Ryan Kan 2019
 
@@ -16,7 +16,7 @@ import datetime
 import tensorflow as tf
 from stable_baselines import A2C
 
-from lib.environment.TradingEnv import TradingEnv
+from lib.environment.tradingEnv import TradingEnv
 from lib.utils.baselineUtils import Baselines
 from lib.utils.dataUtils import process_data, add_technical_indicators
 from lib.utils.executionUtils.genAction import gen_action
